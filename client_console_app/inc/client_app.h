@@ -8,6 +8,7 @@
 #include <iostream>
 #include <map>
 #include "file.h"
+#include "client_network.h"
 
 //cmd codes
 #define HELP 		1
@@ -44,6 +45,7 @@ class ClientApp
 	User _user;
 	File _file;
 	ClientRequest _clientRequest;
+	ClientNetwork _clientNetwork;
 	int UploadFile(string file_name);
 	int DownloadFile(string file_name);
 	int DownloadFile(string file_name, string download_path);
