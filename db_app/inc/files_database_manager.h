@@ -16,28 +16,21 @@ private:
 
     string _userDirectory;
 public:
-    FilesDatabaseManager() {
-        _userID = -1;
-        _userDirectory = "";
-    }
+    FilesDatabaseManager();
     ~FilesDatabaseManager() = default;
 
 
-    void SetUserID(int userID) {
-        _userID = userID;
-    }
+    void SetUserID(int userID);
 
-    void SetUserDirectory(string userDirectory) {
-        _userDirectory = userDirectory;
-    }
+    void SetUserDirectory(string userDirectory);
 
-    int UploadFile(string const& file_name, string const& dir_name, string const& hash_sum) {}
+    int UploadFile(string const& file_name, string const& dir_name, string const& hash_sum);
 
-    FILE * DownloadFile(string const& file_name, string const& dir_name) {}
+    FILE * DownloadFile(string const& file_name, string const& dir_name);
 
-    int DeleteFile(string const& file_name, string const& dir_name ) {}
+    int DeleteFile(string const& file_name, string const& dir_name );
 
-    vector <string> GetFileList(string const& dir_name) {}
+    vector <string> GetFileList(string const& dir_name);
 };
 
 

@@ -13,42 +13,20 @@ class UsersDatabaseManager{
 private:
     int _userID;
 
-    int AddUser() {}
+    int AddUser();
 
-    int CheckUserData() {}
+    int CheckUserData();
 
-    int DeleteUserRecord() {}
+    int DeleteUserRecord();
 public:
-    UsersDatabaseManager() {
-        _userID = -1;
-    }
+    UsersDatabaseManager();
     ~UsersDatabaseManager() = default;
 
-    int RegisterUser(string const& login, string const& password) {
-        //инициализируем userID_
-        _userID = AddUser();
-        return _userID;
-    }
+    int RegisterUser(string const& login, string const& password);
 
-    int AuthorizeUser(string const& login, string const& password) {
-        int userID = CheckUserData();
-        if (userID == -1)
-            return userID;
+    int AuthorizeUser(string const& login, string const& password);
 
-        if (_userID == -1)
-            _userID = userID;
-
-        return _userID;
-    }
-
-    int DeleteUser(string const& login, string const& password) {
-        if (CheckUserData()) {
-            if (DeleteUserRecord())
-                return 1;
-            return 0;
-        }
-        return 1;
-    }
+    int DeleteUser(string const& login, string const& password);
 };
 
 
