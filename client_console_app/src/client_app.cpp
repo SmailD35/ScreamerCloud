@@ -3,23 +3,15 @@
 //
 
 #include "client_app.h"
+#include "../tests/inc/client_network_mock.h"
+
 using namespace std;
-
-ClientApp::ClientApp()
-{
-
-}
-
-ClientApp::~ClientApp()
-{
-
-}
 
 void ClientApp::ParseCmdArguments(int argc, char** argv)
 {
 	if (argc == 1)
 	{
-		_clientRequest.cmdCode = HELP;
+		_clientRequest.cmdCode = HELP_CLI;
 		return;
 	}
 
@@ -28,9 +20,9 @@ void ClientApp::ParseCmdArguments(int argc, char** argv)
 		switch (argc)
 		{
 		case 3:
-			_clientRequest.requestData.insert( pair<string,string>("topic", string(argv[2])));
+			_clientRequest.requestData["topic"] = string(argv[2]);
 		default:
-			_clientRequest.cmdCode = HELP;
+			_clientRequest.cmdCode = HELP_CLI;
 		}
 	}
 
@@ -39,12 +31,12 @@ void ClientApp::ParseCmdArguments(int argc, char** argv)
 		switch (argc)
 		{
 		case 3:
-			_clientRequest.cmdCode = UPLOAD;
-			_clientRequest.requestData.insert( pair<string,string>("file_name", string(argv[2])));
+			_clientRequest.cmdCode = UPLOAD_CLI;
+			_clientRequest.requestData["file_name"] = string(argv[2]);
 			break;
 		default:
-			_clientRequest.cmdCode = HELP;
-			_clientRequest.requestData.insert( pair<string,string>("topic", string(argv[1])));
+			_clientRequest.cmdCode = HELP_CLI;
+			_clientRequest.requestData["topic"] = string(argv[1]);
 		}
 	}
 
@@ -53,14 +45,14 @@ void ClientApp::ParseCmdArguments(int argc, char** argv)
 		switch (argc)
 		{
 		case 4:
-			_clientRequest.requestData.insert( pair<string,string>("download_path", string(argv[3])));
+			_clientRequest.requestData["download_path"] = string(argv[3]);
 		case 3:
-			_clientRequest.cmdCode = DOWNLOAD;
-			_clientRequest.requestData.insert( pair<string,string>("file_name", string(argv[2])));
+			_clientRequest.cmdCode = DOWNLOAD_CLI;
+			_clientRequest.requestData["file_name"] = string(argv[2]);
 			break;
 		default:
-			_clientRequest.cmdCode = HELP;
-			_clientRequest.requestData.insert( pair<string,string>("topic", string(argv[1])));
+			_clientRequest.cmdCode = HELP_CLI;
+			_clientRequest.requestData["topic"] = string(argv[1]);
 		}
 	}
 
@@ -69,12 +61,12 @@ void ClientApp::ParseCmdArguments(int argc, char** argv)
 		switch (argc)
 		{
 		case 3:
-			_clientRequest.cmdCode = DELETE;
-			_clientRequest.requestData.insert( pair<string,string>("file_name", string(argv[2])));
+			_clientRequest.cmdCode = DELETE_CLI;
+			_clientRequest.requestData["file_name"] = string(argv[2]);
 			break;
 		default:
-			_clientRequest.cmdCode = HELP;
-			_clientRequest.requestData.insert( pair<string,string>("topic", string(argv[1])));
+			_clientRequest.cmdCode = HELP_CLI;
+			_clientRequest.requestData["topic"] = string(argv[1]);
 		}
 	}
 
@@ -83,63 +75,77 @@ void ClientApp::ParseCmdArguments(int argc, char** argv)
 		switch (argc)
 		{
 		case 2:
-			_clientRequest.cmdCode = LIST;
+			_clientRequest.cmdCode = LIST_CLI;
 		case 3:
-			_clientRequest.requestData.insert( pair<string,string>("path", string(argv[2])));
+			_clientRequest.requestData["path"] = string(argv[2]);
 			break;
 		default:
-			_clientRequest.cmdCode = HELP;
-			_clientRequest.requestData.insert( pair<string,string>("topic", string(argv[1])));
+			_clientRequest.cmdCode = HELP_CLI;
+			_clientRequest.requestData["topic"] = string(argv[1]);
 		}
 	}
 
 	if (!strncmp("register", argv[1], 8))
 	{
-		_clientRequest.cmdCode = REGISTER;
+		_clientRequest.cmdCode = REGISTER_CLI;
 	}
 
 	if (!strncmp("login", argv[1], 5))
 	{
-		_clientRequest.cmdCode = LOGIN;
+		_clientRequest.cmdCode = LOGIN_CLI;
 	}
+	return;
 }
 
 int ClientApp::ExecuteRequest()
 {
 	switch (_clientRequest.cmdCode)
 	{
-	case HELP:
+	case HELP_CLI:
 		if(_clientRequest.requestData.count("topic"))
-			return Help(_clientRequest.requestData.at("topic"));
+			return Help(_clientRequest.requestData["topic"]);
 		else
 			return Help();
-	case UPLOAD:
-		return UploadFile(_clientRequest.requestData.at("file_name"));
-	case DOWNLOAD:
+	case UPLOAD_CLI:
+		return UploadFile(_clientRequest.requestData["file_name"]);
+	case DOWNLOAD_CLI:
 		if(_clientRequest.requestData.count("download_path"))
-			return DownloadFile(_clientRequest.requestData.at("file_name"),
-				_clientRequest.requestData.at("download_path"));
+			return DownloadFile(_clientRequest.requestData["file_name"],
+				_clientRequest.requestData["download_path"]);
 		else
-			return DownloadFile(_clientRequest.requestData.at("file_name"));
-	case DELETE:
-		return DeleteFile(_clientRequest.requestData.at("file_name"));
-	case LIST:
+			return DownloadFile(_clientRequest.requestData["file_name"]);
+	case DELETE_CLI:
+		return DeleteFile(_clientRequest.requestData["file_name"]);
+	case LIST_CLI:
 		if(_clientRequest.requestData.count("path"))
-			return ListDirectory(_clientRequest.requestData.at("path"));
+			return ListDirectory(_clientRequest.requestData["path"]);
 		else
 			return ListAll();
-	case REGISTER:
+	case REGISTER_CLI:
 		return RegisterUser();
-	case LOGIN:
+	case LOGIN_CLI:
 		return LoginUser();
 	default:
 		return -1;
 	}
+	return 0;
 }
 
 int ClientApp::UploadFile(string file_name)
 {
-	cout << "Upload file: " << file_name << "\n";
+	//cout << "Upload file: " << file_name << "\n";
+
+	_clientNetwork->SendMsg(_clientRequest.requestData);
+	map<string,string> receivedMsg;
+	receivedMsg = _clientNetwork->RecvMsg();
+	if (!receivedMsg.count("cmd_code"))
+		return 1;
+	if (receivedMsg["cmd_code"] != UPLOAD_SRV)
+		return 2;
+	if (!receivedMsg.count("error_code"))
+		return 3;
+	if (receivedMsg["error_code"] == "0")
+		_clientNetwork->SendFile(_file);
 	return 0;
 }
 
@@ -195,9 +201,4 @@ int ClientApp::Help(string help_topic)
 {
 	cout << "help " << help_topic << "\n";
 	return 0;
-}
-
-void CalculateHash(FILE* file)
-{
-
 }

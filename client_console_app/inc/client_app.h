@@ -8,16 +8,16 @@
 #include <iostream>
 #include <map>
 #include "file.h"
-#include "client_network.h"
+#include "client_network_mock.h"
 
 //cmd codes
-#define HELP 		1
-#define UPLOAD 		2
-#define DOWNLOAD 	3
-#define DELETE 		4
-#define LIST 		5
-#define REGISTER 	6
-#define LOGIN 		7
+#define HELP_CLI 		1
+#define UPLOAD_CLI 		2
+#define DOWNLOAD_CLI 	3
+#define DELETE_CLI 		4
+#define LIST_CLI 		5
+#define REGISTER_CLI 	6
+#define LOGIN_CLI 		7
 
 using namespace std;
 
@@ -36,8 +36,9 @@ struct ClientRequest
 class ClientApp
 {
  public:
-	ClientApp();
-	~ClientApp();
+	//ClientApp();
+	ClientApp(ClientNetwork* clientNetwork) : _clientNetwork(clientNetwork) {};
+	//~ClientApp();
 	void ParseCmdArguments(int argc, char** argv);
 	int ExecuteRequest();
  private:
@@ -45,7 +46,7 @@ class ClientApp
 	User _user;
 	File _file;
 	ClientRequest _clientRequest;
-	ClientNetwork _clientNetwork;
+	ClientNetwork* _clientNetwork;
 	int UploadFile(string file_name);
 	int DownloadFile(string file_name);
 	int DownloadFile(string file_name, string download_path);

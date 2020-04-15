@@ -12,8 +12,8 @@ using namespace std;
 class File
 {
  public:
-	File();
-	~File();
+	//File();
+	//~File();
 	string GetHash();
 	int GetSize();
 	FILE* GetFile();
