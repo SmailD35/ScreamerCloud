@@ -24,13 +24,13 @@ public:
     }
     ~UsersDatabaseManager() = default;
 
-    int RegisterUser(std::string const& login, std::string const& password) {
+    int RegisterUser(string const& login, string const& password) {
         //инициализируем userID_
         _userID = AddUser();
         return _userID;
     }
 
-    int AuthorizeUser(std::string const& login, std::string const& password) {
+    int AuthorizeUser(string const& login, string const& password) {
         int userID = CheckUserData();
         if (userID == -1)
             return userID;
@@ -41,7 +41,7 @@ public:
         return _userID;
     }
 
-    int DeleteUser(std::string const& login, std::string const& password) {
+    int DeleteUser(string const& login, string const& password) {
         if (CheckUserData()) {
             if (DeleteUserRecord())
                 return 1;

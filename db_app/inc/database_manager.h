@@ -5,6 +5,7 @@
 #ifndef DB_APP_DATABASE_MANAGER_H
 #define DB_APP_DATABASE_MANAGER_H
 
+
 #include <string>
 #include "files_database_manager.h"
 #include "users_database_manager.h"
@@ -17,20 +18,21 @@ private:
 
     int _userID;
 
-    std::string _userDirectory;
+    string _userDirectory;
 public:
+    //DatabaseManager();
+
     DatabaseManager() {
         _usersDatabaseManager = UsersDatabaseManager();
         _filesDatabaseManager = FilesDatabaseManager();
     }
-
     ~DatabaseManager() = default;
 
-    std::string GetUserDir() {
+    string GetUserDir() {
         return _userDirectory;
     }
 
-    int Register(std::string const& login, std::string const& password) {
+    int Register(string const& login, string const& password) {
         _userID = _usersDatabaseManager.RegisterUser(login, password);
         if (_userID == -1)
             return 1;
@@ -40,41 +42,41 @@ public:
         return 0;
     }
 
-    int Authorize(std::string const& login, std::string const& password) {
+    int Authorize(string const& login, string const& password) {
         int userID = _usersDatabaseManager.AuthorizeUser(login, password);
 
         if (userID == -1)
             return 1;
-        //в случае, если пользователь уже был зарегестрирован до текущего сессии работы с программой
+        //в случае, если пользователь уже был зарегестрирован до текущего сессии работы с программой, необходимо достать его ID и запомнить его
         if (!_userID) {
             _userID = userID;
-            _userDirectory = std::to_string(_userID);
+            _userDirectory = to_string(_userID);
             _filesDatabaseManager.SetUserID(_userID);
             _filesDatabaseManager.SetUserDirectory(_userDirectory);
         }
         return 0;
     }
 
-    int DeleteUser(std::string const& login, std::string const& password) {
+    int DeleteUser(string const& login, string const& password) {
         if (_usersDatabaseManager.DeleteUser(login, password))
             return 1;
         return 0;
     }
 
-    int UploadFile(std::string const &file_name, std::string const &dir_name, int hash_sum) {
+    int Upload(string const &file_name, string const &dir_name, string const &hash_sum) {
         _filesDatabaseManager.UploadFile(file_name, dir_name, hash_sum);
     }
 
-    FILE * DownloadFile(std::string const& file_name, std::string const& dir_name) {
+    FILE * Download(string const& file_name, string const& dir_name) {
         _filesDatabaseManager.DownloadFile(file_name, dir_name);
     };
 
-    int DeleteFile(std::string const& file_name, std::string const& dir_name) {
+    int DeleteFile(string const& file_name, string const& dir_name) {
         _filesDatabaseManager.DeleteFile(file_name, dir_name);
     };
 
-    char * GetFileList(std::string const& file_name, std::string const& dir_name) {
-        _filesDatabaseManager.GetFileList(file_name, dir_name);
+    vector <string> GetFileList(string const& dir_name) {
+        _filesDatabaseManager.GetFileList(dir_name);
     };
 };
 

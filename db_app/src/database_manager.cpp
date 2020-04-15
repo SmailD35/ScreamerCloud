@@ -3,3 +3,11 @@
 //
 
 #include "../inc/database_manager.h"
+/*
+
+DatabaseManager::DatabaseManager() {
+    _usersDatabaseManager = UsersDatabaseManager();
+    _filesDatabaseManager = FilesDatabaseManager();
+}
+*/
+

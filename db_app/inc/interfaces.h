@@ -7,6 +7,8 @@
 
 #include "database_manager.h"
 #include <vector>
+#include <string>
+using namespace std;
 
 class ConnectionNetwork {
 public:
@@ -18,15 +20,13 @@ public:
 class UserSession {
 private:
     ConnectionNetwork _userConnection;
-   // int _userID;
     DatabaseManager _databaseManager;
-    std::vector <std::string> _userQuery;
+    vector <string> _userQuery;
 public:
     UserSession() {
         _userConnection = ConnectionNetwork();
         _databaseManager = DatabaseManager();
     }
-
 };
 
 
