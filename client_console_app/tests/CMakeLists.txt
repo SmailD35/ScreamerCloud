@@ -25,5 +25,5 @@ add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/googletest-src
         EXCLUDE_FROM_ALL)
 
 include_directories(inc ../inc)
-add_executable(client_console_app_test src/tests_main.cpp src/client_network_mock.cpp inc/client_network_mock.h src/tests.cpp ../src/client_app.cpp ../inc/client_app.h)
+add_executable(client_console_app_test src/tests_main.cpp inc/client_network_mock.h src/tests.cpp ../src/client_app.cpp ../inc/client_app.h)
 target_link_libraries(client_console_app_test gtest_main gmock_main)

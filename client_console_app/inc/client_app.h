@@ -36,9 +36,9 @@ struct ClientRequest
 class ClientApp
 {
  public:
-	//ClientApp();
+	ClientApp();
 	ClientApp(ClientNetwork* clientNetwork) : _clientNetwork(clientNetwork) {};
-	//~ClientApp();
+	~ClientApp();
 	void ParseCmdArguments(int argc, char** argv);
 	int ExecuteRequest();
  private:

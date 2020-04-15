@@ -3,9 +3,18 @@
 //
 
 #include "client_app.h"
-#include "../tests/inc/client_network_mock.h"
 
 using namespace std;
+
+ClientApp::ClientApp()
+{
+
+}
+
+ClientApp::~ClientApp()
+{
+
+}
 
 void ClientApp::ParseCmdArguments(int argc, char** argv)
 {
