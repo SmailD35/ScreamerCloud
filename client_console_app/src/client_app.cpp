@@ -74,10 +74,10 @@ void ClientApp::ParseCmdArguments(int argc, char** argv)
 	{
 		switch (argc)
 		{
-		case 2:
-			_clientRequest.cmdCode = LIST_CLI;
 		case 3:
 			_clientRequest.requestData["path"] = string(argv[2]);
+		case 2:
+			_clientRequest.cmdCode = LIST_CLI;
 			break;
 		default:
 			_clientRequest.cmdCode = HELP_CLI;
@@ -133,8 +133,6 @@ int ClientApp::ExecuteRequest()
 
 int ClientApp::UploadFile(string file_name)
 {
-	//cout << "Upload file: " << file_name << "\n";
-
 	_clientNetwork->SendMsg(_clientRequest.requestData);
 	map<string,string> receivedMsg;
 	receivedMsg = _clientNetwork->RecvMsg();
@@ -146,12 +144,26 @@ int ClientApp::UploadFile(string file_name)
 		return 3;
 	if (receivedMsg["error_code"] == "0")
 		_clientNetwork->SendFile(_file);
+	else
+		return 4;
 	return 0;
 }
 
 int ClientApp::DownloadFile(string file_name)
 {
-	cout << "Download file: " << file_name << " in current directory\n";
+	_clientNetwork->SendMsg(_clientRequest.requestData);
+	map<string,string> receivedMsg;
+	receivedMsg = _clientNetwork->RecvMsg();
+	if (!receivedMsg.count("cmd_code"))
+		return 1;
+	if (receivedMsg["cmd_code"] != DOWNLOAD_SRV)
+		return 2;
+	if (!receivedMsg.count("error_code"))
+		return 3;
+	if (receivedMsg["error_code"] == "0")
+		_clientNetwork->RecvFile(&_file);
+	else
+		return 4;
 	return 0;
 }
 
@@ -163,14 +175,36 @@ int ClientApp::DownloadFile(string file_name, string download_path)
 
 int ClientApp::DeleteFile(string file_name)
 {
-	cout << "Delete file: " << file_name << "\n";
-	return 0;
+	_clientNetwork->SendMsg(_clientRequest.requestData);
+	map<string,string> receivedMsg;
+	receivedMsg = _clientNetwork->RecvMsg();
+	if (!receivedMsg.count("cmd_code"))
+		return 1;
+	if (receivedMsg["cmd_code"] != DELETE_SRV)
+		return 2;
+	if (!receivedMsg.count("error_code"))
+		return 3;
+	if (receivedMsg["error_code"] == "0")
+		return 0;
+	else
+		return 4;
 }
 
 int ClientApp::ListAll()
 {
-	cout << "List directories recursively\n";
-	return 0;
+	_clientNetwork->SendMsg(_clientRequest.requestData);
+	map<string,string> receivedMsg;
+	receivedMsg = _clientNetwork->RecvMsg();
+	if (!receivedMsg.count("cmd_code"))
+		return 1;
+	if (receivedMsg["cmd_code"] != LIST_SRV)
+		return 2;
+	if (!receivedMsg.count("error_code"))
+		return 3;
+	if (receivedMsg["error_code"] == "0")
+		return 0;
+	else
+		return 4;
 }
 
 int ClientApp::ListDirectory(string directory_path)
