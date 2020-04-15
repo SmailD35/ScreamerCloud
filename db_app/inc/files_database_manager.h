@@ -15,6 +15,14 @@ private:
     int _userID;
 
     string _userDirectory;
+
+    int CheckExistingFile();
+
+    int AddFileRecord();
+
+    int DeleteFileRecord();
+
+    FILE* GetFilePtr();
 public:
     FilesDatabaseManager();
     ~FilesDatabaseManager() = default;

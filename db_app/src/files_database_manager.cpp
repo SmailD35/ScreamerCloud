@@ -17,10 +17,34 @@ void FilesDatabaseManager::SetUserDirectory(string userDirectory) {
     _userDirectory = userDirectory;
 }
 
-int FilesDatabaseManager::UploadFile(string const& file_name, string const& dir_name, string const& hash_sum) {}
+int FilesDatabaseManager::CheckExistingFile() {}
 
-FILE* FilesDatabaseManager::DownloadFile(string const& file_name, string const& dir_name) {}
+int FilesDatabaseManager::AddFileRecord() {}
 
-int FilesDatabaseManager::DeleteFile(string const& file_name, string const& dir_name ) {}
+int FilesDatabaseManager::DeleteFileRecord() {}
+
+FILE* FilesDatabaseManager::GetFilePtr() {}
+
+int FilesDatabaseManager::UploadFile(string const& file_name, string const& dir_name, string const& hash_sum) {
+    if (CheckExistingFile())
+        return 1;
+    if (AddFileRecord())
+        return 1;
+    return 0;
+}
+
+FILE* FilesDatabaseManager::DownloadFile(string const& file_name, string const& dir_name) {
+    if (CheckExistingFile())
+        return nullptr;
+    return GetFilePtr();
+}
+
+int FilesDatabaseManager::DeleteFile(string const& file_name, string const& dir_name ) {
+    if (CheckExistingFile())
+        return 1;
+    if (DeleteFileRecord())
+        return 1;
+    return 0;
+}
 
 vector <string> FilesDatabaseManager::GetFileList(string const& dir_name) {}

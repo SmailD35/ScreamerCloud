@@ -13,7 +13,7 @@ class UsersDatabaseManager{
 private:
     int _userID;
 
-    int AddUser();
+    int AddUserRecord();
 
     int CheckUserData();
 

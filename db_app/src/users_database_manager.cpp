@@ -4,7 +4,7 @@
 
 #include "../inc/users_database_manager.h"
 
-int UsersDatabaseManager::AddUser() {}
+int UsersDatabaseManager::AddUserRecord() {}
 
 int UsersDatabaseManager::CheckUserData() {}
 
@@ -16,7 +16,7 @@ UsersDatabaseManager::UsersDatabaseManager() {
 
 int UsersDatabaseManager::RegisterUser(string const& login, string const& password) {
     //инициализируем userID_
-    _userID = AddUser();
+    _userID = AddUserRecord();
     return _userID;
 }
 

@@ -39,24 +39,22 @@ int DatabaseManager::Authorize(string const& login, string const& password) {
 }
 
 int DatabaseManager::DeleteUser(string const& login, string const& password) {
-    if (_usersDatabaseManager.DeleteUser(login, password))
-        return 1;
-    return 0;
+    return _usersDatabaseManager.DeleteUser(login, password);
 }
 
 int DatabaseManager::Upload(string const &file_name, string const &dir_name, string const &hash_sum) {
-    _filesDatabaseManager.UploadFile(file_name, dir_name, hash_sum);
+    return _filesDatabaseManager.UploadFile(file_name, dir_name, hash_sum);
 }
 
 FILE* DatabaseManager::Download(string const& file_name, string const& dir_name) {
-    _filesDatabaseManager.DownloadFile(file_name, dir_name);
+    return _filesDatabaseManager.DownloadFile(file_name, dir_name);
 }
 
 int DatabaseManager::DeleteFile(string const& file_name, string const& dir_name) {
-    _filesDatabaseManager.DeleteFile(file_name, dir_name);
+    return _filesDatabaseManager.DeleteFile(file_name, dir_name);
 }
 
 vector <string> DatabaseManager::GetFileList(string const& dir_name) {
-    _filesDatabaseManager.GetFileList(dir_name);
+    return _filesDatabaseManager.GetFileList(dir_name);
 }
 
