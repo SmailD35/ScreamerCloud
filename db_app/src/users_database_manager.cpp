@@ -4,11 +4,11 @@
 
 #include "../inc/users_database_manager.h"
 
-int UsersDatabaseManager::AddUserRecord() {}
+int UsersDatabaseManager::AddUserRecord(string const &login, string const &password) {}
 
-int UsersDatabaseManager::CheckUserData() {}
+int UsersDatabaseManager::CheckUserData(string const &login, string const &password) {}
 
-int UsersDatabaseManager::DeleteUserRecord() {}
+int UsersDatabaseManager::DeleteUserRecord(string const &login, string const &password) {}
 
 UsersDatabaseManager::UsersDatabaseManager() {
     _userID = -1;
@@ -16,12 +16,12 @@ UsersDatabaseManager::UsersDatabaseManager() {
 
 int UsersDatabaseManager::RegisterUser(string const& login, string const& password) {
     //инициализируем userID_
-    _userID = AddUserRecord();
+    _userID = AddUserRecord(login, password);
     return _userID;
 }
 
 int UsersDatabaseManager::AuthorizeUser(string const& login, string const& password) {
-    int userID = CheckUserData();
+    int userID = CheckUserData(login, password);
     if (userID == -1)
         return userID;
 
@@ -32,8 +32,8 @@ int UsersDatabaseManager::AuthorizeUser(string const& login, string const& passw
 }
 
 int UsersDatabaseManager::DeleteUser(string const& login, string const& password) {
-    if (CheckUserData()) {
-        if (DeleteUserRecord())
+    if (CheckUserData(login, password)) {
+        if (DeleteUserRecord(login, password))
             return 1;
         return 0;
     }

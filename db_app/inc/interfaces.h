@@ -6,6 +6,8 @@
 #define DB_APP_INTERFACES_H
 
 #include "database_manager.h"
+#include "database_connection.h"
+
 #include <vector>
 #include <string>
 using namespace std;
@@ -28,6 +30,8 @@ public:
         _databaseManager = DatabaseManager();
     }
 };
+
+
 
 
 #endif //DB_APP_INTERFACES_H

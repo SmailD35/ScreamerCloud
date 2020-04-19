@@ -17,32 +17,32 @@ void FilesDatabaseManager::SetUserDirectory(string userDirectory) {
     _userDirectory = userDirectory;
 }
 
-int FilesDatabaseManager::CheckExistingFile() {}
+int FilesDatabaseManager::CheckExistingFile(string const &file_name, string const &dir_name) {}
 
-int FilesDatabaseManager::AddFileRecord() {}
+int FilesDatabaseManager::AddFileRecord(string const &file_name, string const &dir_name, string const &hash_sum) {}
 
-int FilesDatabaseManager::DeleteFileRecord() {}
+int FilesDatabaseManager::DeleteFileRecord(string const &file_name, string const &dir_name) {}
 
-FILE* FilesDatabaseManager::GetFilePtr() {}
+FILE * FilesDatabaseManager::GetFilePtr(string const &file_name, string const &dir_name) {}
 
 int FilesDatabaseManager::UploadFile(string const& file_name, string const& dir_name, string const& hash_sum) {
-    if (CheckExistingFile())
+    if (CheckExistingFile(file_name, dir_name))
         return 1;
-    if (AddFileRecord())
+    if (AddFileRecord(file_name, dir_name, hash_sum))
         return 1;
     return 0;
 }
 
 FILE* FilesDatabaseManager::DownloadFile(string const& file_name, string const& dir_name) {
-    if (CheckExistingFile())
+    if (CheckExistingFile(file_name, dir_name))
         return nullptr;
-    return GetFilePtr();
+    return GetFilePtr(file_name, dir_name);
 }
 
 int FilesDatabaseManager::DeleteFile(string const& file_name, string const& dir_name ) {
-    if (CheckExistingFile())
+    if (CheckExistingFile(file_name, dir_name))
         return 1;
-    if (DeleteFileRecord())
+    if (DeleteFileRecord(file_name, dir_name))
         return 1;
     return 0;
 }

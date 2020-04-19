@@ -6,18 +6,22 @@
 #define DB_APP_USERS_DATABASE_MANAGER_H
 
 #include <string>
+#include "database_connection.h"
 
 using namespace std;
 
-class UsersDatabaseManager{
+class UsersDatabaseManager {
 private:
     int _userID;
 
-    int AddUserRecord();
+    int AddUserRecord(string const &login, string const &password);
 
-    int CheckUserData();
+    int CheckUserData(string const &login, string const &password);
 
-    int DeleteUserRecord();
+    int DeleteUserRecord(string const &login, string const &password);
+
+    //храним указатель, поскольку класс абстрактный
+    DatabaseConnection *_databaseConnection;
 public:
     UsersDatabaseManager();
     ~UsersDatabaseManager() = default;

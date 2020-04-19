@@ -5,8 +5,11 @@
 
 //////////сделать проверку перед запуском тестов на существование в БД такого пользователя и файла
 
-#include "gtest/gtest.h"
 #include "../inc/database_manager.h"
+#include "gtest/gtest.h"
+
+//#include "../inc/interfaces.h"
+#include "../inc/users_database_manager.h"
 
 #define SUCCESS 0
 #define FAILED 1
@@ -63,6 +66,13 @@ protected:
     void TearDown()  override {}
 };
 
+TEST(MainFuncTest, test1) {
+    DatabaseManager _mng = DatabaseManager();
+
+    //UsersDatabaseManager userdb = UsersDatabaseManager();
+    //_mng.Register("lala", "lala");
+   // UserSession session = UserSession();
+}
 
 /** Тест на успешную регистрацию и авторизацию **/
 TEST_F(TestUserData, test_succesful) {
@@ -93,7 +103,8 @@ TEST_F(TestFileWork, test_succesful_add_files) {
 /** Тест на удачное скачивание файла **/
 TEST_F(TestFileWork, test_succesful_download_files) {
     FILE * download = _mng.Download(_file_name, _dir_name);
-    EXPECT_EQ(download, true);
+    //EXPECT_EQ(download, true);
+    EXPECT_TRUE(download);
 }
 
 /** Тест на неуспешное добавление файла (уже существует) **/
@@ -105,7 +116,8 @@ TEST_F(TestFileWork, test_failing_adding_files) {
 /** Тест на неудачное скачивание файла (неверное имя файла) **/
 TEST_F(TestFileWork, test_failing_download_files) {
     FILE * download = _mng.Download(_wrong_file_name, _dir_name);
-    EXPECT_EQ(download, false);
+    //EXPECT_EQ(download, false);
+    EXPECT_FALSE(download);
 }
 
 /** Тест на неудачное удаление файла (неверное имя файла) **/

@@ -9,6 +9,7 @@ using namespace std;
 
 #include <string>
 #include <vector>
+#include "database_connection.h"
 
 class FilesDatabaseManager{
 private:
@@ -16,17 +17,19 @@ private:
 
     string _userDirectory;
 
-    int CheckExistingFile();
+    int CheckExistingFile(string const &file_name, string const &dir_name);
 
-    int AddFileRecord();
+    int AddFileRecord(string const &file_name, string const &dir_name, string const &hash_sum);
 
-    int DeleteFileRecord();
+    int DeleteFileRecord(string const &file_name, string const &dir_name);
 
-    FILE* GetFilePtr();
+    FILE *GetFilePtr(string const &file_name, string const &dir_name);
+
+    //храним указатель, поскольку класс абстрактный
+    DatabaseConnection *_databaseConnection;
 public:
     FilesDatabaseManager();
     ~FilesDatabaseManager() = default;
-
 
     void SetUserID(int userID);
 
