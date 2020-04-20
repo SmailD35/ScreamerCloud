@@ -10,6 +10,14 @@
 using ::testing::Return;
 using ::testing::SetArgPointee;
 
+TEST(FileTest, file_test)
+{
+	File file;
+	file.SetFile("voina-i-mir.pdf");
+	ASSERT_EQ(file.GetHash(), "bd9179b22fdca4751c38c7a514201504");
+	ASSERT_EQ(file.GetSize(), 31238);
+}
+
 class ClientTest : public ::testing::Test
 {
  protected:

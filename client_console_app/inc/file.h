@@ -7,19 +7,26 @@
 
 #include <cstdio>
 #include <string>
+
 using namespace std;
 
 class File
 {
  public:
-	//File();
-	//~File();
+	File();
+	~File();
 	string GetHash();
 	int GetSize();
 	FILE* GetFile();
+	char* GetNextChunk();
+	void ResetChunks();
+	int GetProgress();
+	void SetFile(string file_name);
  private:
 	string _hashSum;
 	int _size = 0;
+	int _chunksReaded = 0;
+	int _chunksCount = 0;
 	string _path;
 	FILE* file = nullptr;
 	int CalculateHash();
