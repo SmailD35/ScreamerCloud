@@ -14,13 +14,13 @@ protected:
 	map<string,string> client_query;
 	UserSession* userSession = nullptr;
 	Command* command = nullptr;
-	Invoker* invoker;
+	Invoker* invoker = nullptr;
 
 	void SetUp() override
 	{
 		userSession = new UserSession(&connectionNetworkMock, &databaseManagerMock);
 	}
-	
+
 	void TearDown() override
 	{
 		delete userSession;
