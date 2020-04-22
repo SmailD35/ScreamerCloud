@@ -2,12 +2,24 @@
 #include "network_mock.h"
 #include "database_mock.h"
 
+#define UPLOAD_SRV 		"1"
+#define DOWNLOAD_SRV 	"2"
+#define DELETE_SRV 		"3"
+#define LIST_SRV 		"4"
+#define AUTH_SRV 		"5"
+#define REGISTER_SRV 	"6"
+
 class UserSession
 {
 public:
 
-    ConnectionNetwork _userConnection;
-    DatabaseManager _databaseManager;
+	UserSession();
+	UserSession(ConnectionNetwork* userConnection, DatabaseManager* databaseManager)
+		: _userConnection(userConnection), _databaseManager(databaseManager) {};
+	~UserSession();
+	//указатель потому что тесты
+    ConnectionNetwork* _userConnection;
+    DatabaseManager* _databaseManager;
     map<string, string> _userQuery;
 
 };
@@ -20,6 +32,7 @@ protected:
 
 public:
 
+	explicit Command(UserSession userSession) : _userSession(userSession) {};
     virtual void Do();
     virtual void Undo();
 
@@ -38,7 +51,15 @@ public:
     void SetCommand(Command command);
 };
 
-class RegisterUserCommand : Command
+class RegisterUserCommand : public Command
+{
+public:
+	using Command::Command;
+    void Do();
+    void Undo();
+};
+
+class SendFileCommand : public Command
 {
 public:
 
@@ -46,7 +67,7 @@ public:
     void Undo();
 };
 
-class SendFileCommand : Command
+class RecvFileCommand : public Command
 {
 public:
 
@@ -54,15 +75,7 @@ public:
     void Undo();
 };
 
-class RecvFileCommand : Command
-{
-public:
-
-    void Do();
-    void Undo();
-};
-
-class SendFileListCommand : Command
+class SendFileListCommand : public Command
 {
 public:
 
@@ -83,4 +96,5 @@ public:
 
     void ConnectionsLoop();
     void QueriesLoop();
+    void ExecuteCommand();
 };

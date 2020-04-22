@@ -1,6 +1,8 @@
 #ifndef SERVER_SERVER_MOCK_H
 #define SERVER_SERVER_MOCK_H
 
+#include "gmock/gmock.h"
+
 class Command
 {
 public:
