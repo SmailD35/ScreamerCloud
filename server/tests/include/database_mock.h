@@ -6,6 +6,7 @@
 class DatabaseManager
 {
 public:
+	virtual ~DatabaseManager() {};
 	virtual string GetUserDir() = 0;
     virtual int Register(string login, string password) = 0;
     virtual int Authorize(string login, string password) = 0;
