@@ -9,7 +9,7 @@ using namespace std;
 
 #include <string>
 #include <vector>
-#include "database_connection.h"
+#include "database_wrapper.h"
 
 class FilesDatabaseManager{
 private:
@@ -26,7 +26,7 @@ private:
     FILE *GetFilePtr(string const &file_name, string const &dir_name);
 
     //храним указатель, поскольку класс абстрактный
-    DatabaseConnection *_databaseConnection;
+    DatabaseWrapper *_databaseConnection;
 public:
     FilesDatabaseManager();
     ~FilesDatabaseManager() = default;

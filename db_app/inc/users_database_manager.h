@@ -6,7 +6,7 @@
 #define DB_APP_USERS_DATABASE_MANAGER_H
 
 #include <string>
-#include "database_connection.h"
+#include "database_wrapper.h"
 
 using namespace std;
 
@@ -21,7 +21,7 @@ private:
     int DeleteUserRecord(string const &login, string const &password);
 
     //храним указатель, поскольку класс абстрактный
-    DatabaseConnection *_databaseConnection;
+    DatabaseWrapper *_databaseConnection;
 public:
     UsersDatabaseManager();
     ~UsersDatabaseManager() = default;

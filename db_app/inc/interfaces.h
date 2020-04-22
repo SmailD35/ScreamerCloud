@@ -6,7 +6,7 @@
 #define DB_APP_INTERFACES_H
 
 #include "database_manager.h"
-#include "database_connection.h"
+#include "database_wrapper.h"
 
 #include <vector>
 #include <string>

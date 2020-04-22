@@ -15,7 +15,7 @@
 
 using namespace std;
 
-class DatabaseConnection {
+class DatabaseWrapper {
 private:
     char* _files_db_name;
 
@@ -28,8 +28,8 @@ private:
     virtual int CloseConnection(int db_type) = 0;
 
 public:
-    DatabaseConnection() = default;
-    ~DatabaseConnection() = default;
+    DatabaseWrapper() = default;
+    ~DatabaseWrapper() = default;
 
     //имена берутся из конфига?
     virtual void SetFilesDBName() = 0;
