@@ -20,6 +20,13 @@ protected:
 	{
 		userSession = new UserSession(&connectionNetworkMock, &databaseManagerMock);
 	}
+	
+	void TearDown() override
+	{
+		delete userSession;
+		delete invoker;
+		delete command;
+	}
 };
 
 TEST_F(CommandsTest, register_user_test)
