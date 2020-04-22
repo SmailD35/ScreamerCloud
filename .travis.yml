@@ -27,7 +27,7 @@ install:
     - if [ $TRAVIS_OS_NAME = linux ]; then source travis/install-linux.sh; fi
 
 script:
-    - cd client_console_app
+    - cd db_app
     - mkdir cmake-build-debug
     - cd cmake-build-debug
     - cmake .. -DCMAKE_BUILD_TYPE=$BUILD_CONFIGURATION -DTARGET_CPU=$TARGET_CPU
