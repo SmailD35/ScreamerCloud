@@ -3,19 +3,15 @@
 
 #include <string>
 #include <vector>
-#include <boost/asio/io_service.hpp>
-#include <boost/asio/ip/tcp.hpp>
 #include "../tests/headers/test_network_client.h"
 
 
 using namespace std;
-using namespace boost::asio;
 
 
 class ConnectionNetwork
 {
 private:
-	//ip::tcp::socket _socket;
 	void Send(int buf_size);
 	void Recv(int buf_size);
 	int Serialize();

@@ -3,12 +3,9 @@
 
 #include <string>
 #include <vector>
-#include <boost/asio/io_service.hpp>
-#include <boost/asio/ip/tcp.hpp>
 #include "../tests/headers/test_network_client.h"
 
 using namespace std;
-using namespace boost::asio;
 
 class ClientNetwork
 {
