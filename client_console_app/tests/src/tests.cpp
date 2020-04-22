@@ -33,6 +33,12 @@ class ClientTest : public ::testing::Test
 		error = 0;
 		clientAppTest = new ClientApp(&clientNetworkMock);
 	}
+
+	void TearDown() override
+	{
+		delete [] arguments;
+		delete clientAppTest;
+	}
 };
 
 TEST_F(ClientTest, upload_file_test)
