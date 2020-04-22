@@ -67,7 +67,7 @@ void SendFileListCommand::Undo()
 
 Command* Server::CreateCommand(UserSession userSession)
 {
-	Command* result;
+	Command* result = nullptr;
 	return result;
 }
 
