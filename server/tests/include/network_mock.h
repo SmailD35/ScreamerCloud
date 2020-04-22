@@ -11,25 +11,25 @@ class File
 {
 public:
 
-    virtual int GetSize();
-    virtual string GetHash();
+    virtual int GetSize() = 0;
+    virtual string GetHash() = 0;
 };
 
 class ConnectionNetwork
 {
 public:
 
-    virtual void SendMsg();
-    virtual map<string, string> RecvMsg();
-    virtual void SendFile(File* file_obj);
-    virtual void RecvFile(File* file_ptr);
+    virtual void SendMsg() = 0;
+    virtual map<string, string> RecvMsg() = 0;
+    virtual void SendFile(File* file_obj) = 0;
+    virtual void RecvFile(File* file_ptr) = 0;
 };
 
 class ServerNetwork
 {
 public:
 
-    virtual ConnectionNetwork StandConnection();
+    virtual ConnectionNetwork* StandConnection() = 0;
 };
 
 
@@ -37,7 +37,7 @@ class ServerNetworkMock : public ServerNetwork
 {
 public:
 
-    MOCK_METHOD(ConnectionNetwork, StandConnection, (), (override));
+    MOCK_METHOD(ConnectionNetwork*, StandConnection, (), (override));
 };
 
 

@@ -23,5 +23,5 @@ add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/googletest-src
         ${CMAKE_CURRENT_BINARY_DIR}/googletest-build
         EXCLUDE_FROM_ALL)
 
-add_executable(test_server source/tests.cpp source/main.cpp include/network_mock.h include/database_mock.h include/server_mock.h)
+add_executable(test_server source/tests.cpp source/main.cpp ../source/classes.cpp ../include/classes.h include/network_mock.h include/database_mock.h)
 target_link_libraries(test_server gtest_main gmock_main)

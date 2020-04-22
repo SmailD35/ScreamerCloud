@@ -32,9 +32,10 @@ protected:
 
 public:
 
+	Command();
 	explicit Command(UserSession userSession) : _userSession(userSession) {};
-    virtual void Do();
-    virtual void Undo();
+    virtual void Do() = 0;
+    virtual void Undo() = 0;
 
 };
 
@@ -42,55 +43,59 @@ class Invoker
 {
 private:
 
-    Command _command;
+    Command* _command;
 
 public:
 
+	explicit Invoker(Command* command) : _command(command) {};
     void Do();
     void Undo();
-    void SetCommand(Command command);
 };
 
 class RegisterUserCommand : public Command
 {
 public:
+
 	using Command::Command;
-    void Do();
-    void Undo();
+    void Do() override;
+    void Undo() override;
 };
 
 class SendFileCommand : public Command
 {
 public:
 
-    void Do();
-    void Undo();
+	using Command::Command;
+    void Do() override;
+    void Undo() override;
 };
 
 class RecvFileCommand : public Command
 {
 public:
 
-    void Do();
-    void Undo();
+	using Command::Command;
+	void Do() override;
+    void Undo() override;
 };
 
 class SendFileListCommand : public Command
 {
 public:
 
-    void Do();
-    void Undo();
+	using Command::Command;
+	void Do() override;
+    void Undo() override;
 };
 
 class Server
 {
 private:
-
-    ServerNetwork _network;
+	//указатель потому что тесты
+	ServerNetwork* _network;
     queue<ConnectionNetwork> _connections;
     queue<Command> _queries;
-    Command CreateCommand(UserSession userSession);
+    Command* CreateCommand(UserSession userSession);
 
 public:
 

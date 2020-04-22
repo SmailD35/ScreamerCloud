@@ -14,6 +14,7 @@ protected:
 	map<string,string> client_query;
 	UserSession* userSession = nullptr;
 	Command* command = nullptr;
+	Invoker* invoker;
 
 	void SetUp() override
 	{
@@ -23,13 +24,46 @@ protected:
 
 TEST_F(CommandsTest, register_user_test)
 {
-	client_query["cmd_code"] = REGISTER_SRV;
-	client_query["login"] = "vasya";
-	client_query["password"] = "12345";
-
-	EXPECT_CALL(connectionNetworkMock, RecvMsg).WillOnce(Return(client_query));
-	EXPECT_CALL();
-
 	command = new RegisterUserCommand(*userSession);
 
+	invoker = new Invoker(command);
+	invoker->Do();
+
+	EXPECT_CALL(databaseManagerMock, Register).WillOnce(Return(0));
+	EXPECT_CALL(connectionNetworkMock, SendMsg).Times(1);
+}
+
+TEST_F(CommandsTest, send_file_test)
+{
+	command = new SendFileCommand(*userSession);
+
+	invoker = new Invoker(command);
+	invoker->Do();
+
+	EXPECT_CALL(databaseManagerMock, DownloadFile).Times(1);
+	EXPECT_CALL(connectionNetworkMock, SendMsg).Times(1);
+	EXPECT_CALL(connectionNetworkMock, SendFile).Times(1);
+}
+
+TEST_F(CommandsTest, recv_file_test)
+{
+	command = new RecvFileCommand(*userSession);
+
+	invoker = new Invoker(command);
+	invoker->Do();
+
+	EXPECT_CALL(databaseManagerMock, UploadFile).WillOnce(Return(0));
+	EXPECT_CALL(connectionNetworkMock, SendMsg).Times(1);
+	EXPECT_CALL(connectionNetworkMock, RecvFile).Times(1);
+}
+
+TEST_F(CommandsTest, send_file_list_test)
+{
+	command = new SendFileListCommand(*userSession);
+
+	invoker = new Invoker(command);
+	invoker->Do();
+
+	EXPECT_CALL(databaseManagerMock, GetFileList).Times(1);
+	EXPECT_CALL(connectionNetworkMock, SendMsg).Times(1);
 }
