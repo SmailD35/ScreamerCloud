@@ -5,6 +5,7 @@
 #include <vector>
 #include <boost/asio/io_service.hpp>
 #include <boost/asio/ip/tcp.hpp>
+#include "../tests/headers/test_network_client.h"
 
 using namespace std;
 using namespace boost::asio;
@@ -12,23 +13,33 @@ using namespace boost::asio;
 class ClientNetwork
 {
 private:
-	ip::tcp::socket _socket;
+	//ip::tcp::socket _socket;
 	int _port;
 	std::string _IP;
-	char * buf_send;
-	char * buf_recv;
 	void Send(int buf_size);
 	void Recv(int buf_size);
 	int Serialize(map<string, string>);
 	map<string, string> Deserialize(int buf_size);
+
+protected:
+	char * buf_send;
+	char * buf_recv;
 
 public:
 	ClientNetwork();
 	~ClientNetwork();
 	void SendMsg(map<string, string> client_query);
 	map<string, string> RecvMsg();
-	void SendFile(File file_obj);
+	void SendFile(File * file_obj);
 	void RecvFile(File * file_obj_ptr);
+};
+
+
+class ClientNetworkTest : public ClientNetwork
+{
+public:
+	char * GetBuf(int choice);
+	void SetBuf(int choice, char * buf);
 };
 
 

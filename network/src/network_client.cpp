@@ -36,7 +36,7 @@ map<string, string> ClientNetwork::RecvMsg()
 
 };
 
-void ClientNetwork::SendFile(File file_obj)
+void ClientNetwork::SendFile(File * file_obj)
 {
 
 };
@@ -45,3 +45,7 @@ void ClientNetwork::RecvFile(File * file_obj_ptr)
 {
 
 };
+
+char * ClientNetworkTest::GetBuf(int choice) {};
+
+void ClientNetworkTest::SetBuf(int choice, char *buf) {};

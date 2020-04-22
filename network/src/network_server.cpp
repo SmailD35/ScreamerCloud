@@ -6,7 +6,7 @@ ServerNetwork::ServerNetwork()
 
 };
 
-int ServerNetwork::StandConnection()
+ConnectionNetwork ServerNetwork::StandConnection()
 {
 
 };
@@ -47,12 +47,17 @@ map<string, string> ConnectionNetwork::RecvMsg()
 
 };
 
-void ConnectionNetwork::SendFile(File file_obj)
+void ConnectionNetwork::SendFile(File * file_obj)
 {
 
 };
 
 void ConnectionNetwork::RecvFile(File * file_obj_ptr)
+{
+
+}
+
+ConnectionNetwork::~ConnectionNetwork()
 {
 
 };
