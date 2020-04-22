@@ -17,13 +17,13 @@ private:
 
     string _userDirectory;
 
-    int CheckExistingFile(string const &file_name, string const &dir_name);
+    static int CheckExistingFile(string const &file_name, string const &dir_name);
 
-    int AddFileRecord(string const &file_name, string const &dir_name, string const &hash_sum);
+    static int AddFileRecord(string const &file_name, string const &dir_name, string const &hash_sum);
 
-    int DeleteFileRecord(string const &file_name, string const &dir_name);
+    static int DeleteFileRecord(string const &file_name, string const &dir_name);
 
-    FILE *GetFilePtr(string const &file_name, string const &dir_name);
+    static FILE *GetFilePtr(string const &file_name, string const &dir_name);
 
     //храним указатель, поскольку класс абстрактный
     DatabaseWrapper *_databaseConnection;

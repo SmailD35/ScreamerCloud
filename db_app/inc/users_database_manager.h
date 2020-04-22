@@ -14,11 +14,11 @@ class UsersDatabaseManager {
 private:
     int _userID;
 
-    int AddUserRecord(string const &login, string const &password);
+    static int AddUserRecord(string const &login, string const &password);
 
-    int CheckUserData(string const &login, string const &password);
+    static int CheckUserData(string const &login, string const &password);
 
-    int DeleteUserRecord(string const &login, string const &password);
+    static int DeleteUserRecord(string const &login, string const &password);
 
     //храним указатель, поскольку класс абстрактный
     DatabaseWrapper *_databaseConnection;
