@@ -7,6 +7,7 @@
 DatabaseManager::DatabaseManager() {
     _usersDatabaseManager = UsersDatabaseManager();
     _filesDatabaseManager = FilesDatabaseManager();
+    _userID = -2;
 }
 
 string DatabaseManager::GetUserDir() {
@@ -29,7 +30,7 @@ int DatabaseManager::Authorize(string const& login, string const& password) {
     if (userID == -1)
         return 1;
     //в случае, если пользователь уже был зарегестрирован до текущего сессии работы с программой, необходимо достать его ID и запомнить его
-    if (!_userID) {
+    if (_userID == -2) {
         _userID = userID;
         _userDirectory = to_string(_userID);
         _filesDatabaseManager.SetUserID(_userID);
