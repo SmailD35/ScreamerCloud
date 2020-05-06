@@ -2,12 +2,7 @@
 #include "network_mock.h"
 #include "database_mock.h"
 
-#define UPLOAD_SRV 		"1"
-#define DOWNLOAD_SRV 	"2"
-#define DELETE_SRV 		"3"
-#define LIST_SRV 		"4"
-#define AUTH_SRV 		"5"
-#define REGISTER_SRV 	"6"
+enum CmdCodeServer { UPLOAD_SRV, DOWNLOAD_SRV, DELETE_SRV, LIST_SRV, AUTH_SRV, REGISTER_SRV };
 
 class UserSession
 {
@@ -86,20 +81,4 @@ public:
 	using Command::Command;
 	void Do() override;
     void Undo() override;
-};
-
-class Server
-{
-private:
-	//указатель потому что тесты
-	ServerNetwork* _network;
-    queue<ConnectionNetwork> _connections;
-    queue<Command> _queries;
-    Command* CreateCommand(UserSession userSession);
-
-public:
-
-    void ConnectionsLoop();
-    void QueriesLoop();
-    void ExecuteCommand();
 };
