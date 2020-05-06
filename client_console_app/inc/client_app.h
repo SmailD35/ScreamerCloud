@@ -5,32 +5,25 @@
 #ifndef CLIENT_CONSOLE_APP__CLIENT_APP_H_
 #define CLIENT_CONSOLE_APP__CLIENT_APP_H_
 
-#include <iostream>
 #include <map>
+#include <boost/program_options.hpp>
 #include "file.h"
 #include "client_network_mock.h"
 
-//cmd codes
-#define HELP_CLI 		1
-#define UPLOAD_CLI 		2
-#define DOWNLOAD_CLI 	3
-#define DELETE_CLI 		4
-#define LIST_CLI 		5
-#define REGISTER_CLI 	6
-#define LOGIN_CLI 		7
+namespace po = boost::program_options;
 
-using namespace std;
+enum CmdCodeClient { UPLOAD_CLI, DOWNLOAD_CLI, DELETE_CLI, LIST_CLI, REGISTER_CLI, LOGIN_CLI };
 
 struct User
 {
-	string login;
-	string password;
+	std::string login;
+	std::string password;
 };
 
 struct ClientRequest
 {
 	int cmdCode = 0;
-	map <string,string> requestData;
+	std::map <std::string,std::string> requestData;
 };
 
 class ClientApp
@@ -42,21 +35,22 @@ class ClientApp
 	void ParseCmdArguments(int argc, char** argv);
 	int ExecuteRequest();
  private:
-	string _currentDirectory;
+	int UploadFile(const std::string &file_name);
+	int DownloadFile(const std::string &file_name);
+	int DownloadFile(const std::string &file_name, const std::string &download_path);
+	int DeleteFile(const std::string &file_name);
+	int ListAll();
+	int ListDirectory(const std::string &directory_path);
+	int RegisterUser();
+	int LoginUser();
+	int Help();
+	int Help(const std::string &help_topic);
+ private:
+	std::string _currentDirectory;
 	User _user;
 	File _file;
 	ClientRequest _clientRequest;
 	ClientNetwork* _clientNetwork;
-	int UploadFile(string file_name);
-	int DownloadFile(string file_name);
-	int DownloadFile(string file_name, string download_path);
-	int DeleteFile(string file_name);
-	int ListAll();
-	int ListDirectory(string directory_path);
-	int RegisterUser();
-	int LoginUser();
-	int Help();
-	int Help(string help_topic);
 };
 
 #endif //CLIENT_CONSOLE_APP__CLIENT_APP_H_

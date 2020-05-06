@@ -18,103 +18,65 @@ ClientApp::~ClientApp()
 
 void ClientApp::ParseCmdArguments(int argc, char** argv)
 {
-	if (argc == 1)
-	{
-		_clientRequest.cmdCode = HELP_CLI;
+	po::options_description desc("Allowed options");
+	desc.add_options()
+		("help,h", "produce help message")
+		("upload", po::value<std::string>(), "upload file")
+		("download", po::value<std::string>(), "download file")
+		("delete", po::value<std::string>(), "delete file from cloud storage")
+		("list,l", po::value<std::string>()->default_value(string("/")), "list files in 'arg' directory")
+		("register", "register new user")
+		("login", "login user");
+
+	po::variables_map vm;
+	po::store(po::parse_command_line(argc, argv, desc), vm);
+	po::notify(vm);
+
+	if (vm.count("help")) {
+		cout << desc << "\n";
 		return;
 	}
 
-	if (!strncmp("help", argv[1], 4))
-	{
-		switch (argc)
-		{
-		case 3:
-			_clientRequest.requestData["topic"] = string(argv[2]);
-		default:
-			_clientRequest.cmdCode = HELP_CLI;
-		}
+	if (vm.count("upload")) {
+		_clientRequest.cmdCode = UPLOAD_CLI;
+		_clientRequest.requestData["file_name"] = vm["upload"].as<std::string>();
+		return;
 	}
 
-	if (!strncmp("upload", argv[1], 6))
-	{
-		switch (argc)
-		{
-		case 3:
-			_clientRequest.cmdCode = UPLOAD_CLI;
-			_clientRequest.requestData["file_name"] = string(argv[2]);
-			break;
-		default:
-			_clientRequest.cmdCode = HELP_CLI;
-			_clientRequest.requestData["topic"] = string(argv[1]);
-		}
+	if (vm.count("download")) {
+		_clientRequest.cmdCode = DOWNLOAD_CLI;
+		_clientRequest.requestData["file_name"] = vm["download"].as<std::string>();
+		return;
 	}
 
-	if (!strncmp("download", argv[1], 8))
-	{
-		switch (argc)
-		{
-		case 4:
-			_clientRequest.requestData["download_path"] = string(argv[3]);
-		case 3:
-			_clientRequest.cmdCode = DOWNLOAD_CLI;
-			_clientRequest.requestData["file_name"] = string(argv[2]);
-			break;
-		default:
-			_clientRequest.cmdCode = HELP_CLI;
-			_clientRequest.requestData["topic"] = string(argv[1]);
-		}
+	if (vm.count("delete")) {
+		_clientRequest.cmdCode = DELETE_CLI;
+		_clientRequest.requestData["file_name"] = vm["delete"].as<std::string>();
+		return;
 	}
 
-	if (!strncmp("delete", argv[1], 6))
-	{
-		switch (argc)
-		{
-		case 3:
-			_clientRequest.cmdCode = DELETE_CLI;
-			_clientRequest.requestData["file_name"] = string(argv[2]);
-			break;
-		default:
-			_clientRequest.cmdCode = HELP_CLI;
-			_clientRequest.requestData["topic"] = string(argv[1]);
-		}
+	if (vm.count("list")) {
+		_clientRequest.cmdCode = LIST_CLI;
+		_clientRequest.requestData["path"] = vm["list"].as<std::string>();
+		return;
 	}
 
-	if (!strncmp("list", argv[1], 4))
-	{
-		switch (argc)
-		{
-		case 3:
-			_clientRequest.requestData["path"] = string(argv[2]);
-		case 2:
-			_clientRequest.cmdCode = LIST_CLI;
-			break;
-		default:
-			_clientRequest.cmdCode = HELP_CLI;
-			_clientRequest.requestData["topic"] = string(argv[1]);
-		}
-	}
-
-	if (!strncmp("register", argv[1], 8))
-	{
+	if (vm.count("register")) {
 		_clientRequest.cmdCode = REGISTER_CLI;
+		return;
 	}
 
-	if (!strncmp("login", argv[1], 5))
-	{
+	if (vm.count("login")) {
 		_clientRequest.cmdCode = LOGIN_CLI;
+		return;
 	}
-	return;
 }
 
 int ClientApp::ExecuteRequest()
 {
+	if (!_clientRequest.cmdCode) return 0;
 	switch (_clientRequest.cmdCode)
 	{
-	case HELP_CLI:
-		if(_clientRequest.requestData.count("topic"))
-			return Help(_clientRequest.requestData["topic"]);
-		else
-			return Help();
 	case UPLOAD_CLI:
 		return UploadFile(_clientRequest.requestData["file_name"]);
 	case DOWNLOAD_CLI:
@@ -126,21 +88,17 @@ int ClientApp::ExecuteRequest()
 	case DELETE_CLI:
 		return DeleteFile(_clientRequest.requestData["file_name"]);
 	case LIST_CLI:
-		if(_clientRequest.requestData.count("path"))
-			return ListDirectory(_clientRequest.requestData["path"]);
-		else
-			return ListAll();
+		return ListDirectory(_clientRequest.requestData["path"]);
 	case REGISTER_CLI:
 		return RegisterUser();
 	case LOGIN_CLI:
 		return LoginUser();
 	default:
-		return -1;
+		return -2;
 	}
-	return 0;
 }
 
-int ClientApp::UploadFile(string file_name)
+int ClientApp::UploadFile(const std::string &file_name)
 {
 	_clientNetwork->SendMsg(_clientRequest.requestData);
 	map<string,string> receivedMsg;
@@ -158,7 +116,7 @@ int ClientApp::UploadFile(string file_name)
 	return 0;
 }
 
-int ClientApp::DownloadFile(string file_name)
+int ClientApp::DownloadFile(const std::string &file_name)
 {
 	_clientNetwork->SendMsg(_clientRequest.requestData);
 	map<string,string> receivedMsg;
@@ -176,13 +134,13 @@ int ClientApp::DownloadFile(string file_name)
 	return 0;
 }
 
-int ClientApp::DownloadFile(string file_name, string download_path)
+int ClientApp::DownloadFile(const std::string &file_name, const std::string &download_path)
 {
 	cout << "Download file: " << file_name << " in " << download_path << " directory\n";
 	return 0;
 }
 
-int ClientApp::DeleteFile(string file_name)
+int ClientApp::DeleteFile(const std::string &file_name)
 {
 	_clientNetwork->SendMsg(_clientRequest.requestData);
 	map<string,string> receivedMsg;
@@ -216,7 +174,7 @@ int ClientApp::ListAll()
 		return 4;
 }
 
-int ClientApp::ListDirectory(string directory_path)
+int ClientApp::ListDirectory(const std::string &directory_path)
 {
 	cout << "List directory: " << directory_path << "\n";
 	return 0;
@@ -240,7 +198,7 @@ int ClientApp::Help()
 	return 0;
 }
 
-int ClientApp::Help(string help_topic)
+int ClientApp::Help(const std::string &help_topic)
 {
 	cout << "help " << help_topic << "\n";
 	return 0;

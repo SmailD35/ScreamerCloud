@@ -8,29 +8,28 @@
 #include <cstdio>
 #include <string>
 
-using namespace std;
-
 class File
 {
  public:
 	File();
 	~File();
-	string GetHash();
+	std::string GetHash();
 	int GetSize();
 	FILE* GetFile();
 	char* GetNextChunk();
 	void ResetChunks();
 	int GetProgress();
-	void SetFile(string file_name);
+	void SetFile(std::string file_name);
  private:
-	string _hashSum;
+	int CalculateHash();
+	int CalculateSize();
+ private:
+	std::string _hashSum;
 	int _size = 0;
 	int _chunksReaded = 0;
 	int _chunksCount = 0;
-	string _path;
+	std::string _path;
 	FILE* file = nullptr;
-	int CalculateHash();
-	int CalculateSize();
 };
 
 #endif //CLIENT_CONSOLE_APP__FILE_H_
