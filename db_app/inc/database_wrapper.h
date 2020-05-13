@@ -7,53 +7,78 @@
 
 #include <string>
 #include <vector>
-//#include <libpq-fe.h>
-#include "stubs_libpq.h"
 
-#define CONNECT_TO_USERS_DB 0
-#define CONNECT_TO_FILES_DB 1
+#include <libpq-fe.h>
+#include <iostream>
 
-using namespace std;
+#include <memory>
 
+enum Msg{
+    NIL = -2,
+    FAIL = -1
+};
+
+enum DBType{
+    USERS_DB,
+    FILES_DB
+};
+
+class DBExceptions {
+private:
+    std::string m_error;
+
+public:
+    DBExceptions(std::string error) : m_error(error) {}
+    void m_what() { std::cout << m_error; } ////сделать вывод не в iostream, а в логи
+};
+
+
+////добавить логирование и чтение данных из конфиг-файла
 class DatabaseWrapper {
 private:
-    char* _files_db_name;
+    std::string _files_db_info;
 
-    char* _users_db_name;
+    std::string _users_db_info;
 
     int _userID;
 
-    virtual PGconn GetConnection(int db_type) = 0;
+    //std::shared_ptr<PGconn>  _connection;
 
-    virtual int CloseConnection(int db_type) = 0;
+    /////нужно ли каждый раз создавать подключение или можно его хранить в объекте ?
+    ////по идее надо каждый раз создавать новое, чтобы подключаться то к users, то к files
+    std::shared_ptr <PGconn> GetConnection(DBType db_type);
 
-public:
-    DatabaseWrapper() = default;
-    ~DatabaseWrapper() = default;
+    int CloseConnection(DBType db_type);
 
     //имена берутся из конфига?
-    virtual void SetFilesDBName() = 0;
-    virtual void SetUsersDBName() = 0;
+    void GetFilesDBInfo();
+    void GetUsersDBInfo();
 
-    virtual void SetUserID(int userID) = 0;
+public:
+    DatabaseWrapper();
+    ~DatabaseWrapper() = default;
 
-    virtual int CheckUserData(string const& login, string const& password) = 0;
+    void SetUserID(int userID);
 
-    virtual int AddUserRecord(string const& login, string const& password) = 0;
+    int CheckUserData(const std::string &login, const std::string &password);
 
-    virtual int DeleteUserRecord(string const& login, string const& password) = 0;
+    int AddUserRecord(const std::string &login, const std::string &password) throw(DBExceptions);
+
+    int DeleteUserRecord(const std::string &login, const std::string &password) throw(DBExceptions);
+
+    bool DeleteUserRecord(int userID) throw(DBExceptions);
 
     //------------------------------------------------------------------------------
 
-    virtual int CheckExistingFile(string const& file_name, string const& dir_name) = 0;
+    int CheckExistingFile(const std::string &file_name, const std::string &dir_name);
 
-    virtual int AddFileRecord(string const& file_name, string const& dir_name, string const& hash_sum) = 0;
+    int AddFileRecord(const std::string &file_name, const std::string &dir_name, const std::string &hash_sum) throw(DBExceptions);
 
-    virtual int DeleteFileRecord(string const& file_name, string const& dir_name) = 0;
+    int DeleteFileRecord(const std::string &file_name, const std::string &dir_name) throw(DBExceptions);
 
-    virtual int GetFileID(string const& file_name, string const& dir_name) = 0;
+    int GetFileID(const std::string &file_name, const std::string &dir_name) throw(DBExceptions);
 
-    virtual vector <string> GetFileList(string const& dir_name) = 0;
+    std::vector <std::string> GetFileList(std::string const& dir_name);
 };
 
 

@@ -5,43 +5,39 @@
 #ifndef DB_APP_FILES_DATABASE_MANAGER_H
 #define DB_APP_FILES_DATABASE_MANAGER_H
 
-using namespace std;
-
-#include <string>
-#include <vector>
 #include "database_wrapper.h"
+
 
 class FilesDatabaseManager{
 private:
     int _userID;
 
-    string _userDirectory;
+    std::string _userDirectory;
 
-    static int CheckExistingFile(string const &file_name, string const &dir_name);
+    bool CheckExistingFile(const std::string &file_name, const std::string &dir_name);
 
-    static int AddFileRecord(string const &file_name, string const &dir_name, string const &hash_sum);
+    bool AddFileRecord(const std::string &file_name, const std::string &dir_name, const std::string &hash_sum);
 
-    static int DeleteFileRecord(string const &file_name, string const &dir_name);
+    bool DeleteFileRecord(const std::string &file_name, const std::string &dir_name);
 
-    static FILE *GetFilePtr(string const &file_name, string const &dir_name);
+    std::shared_ptr<FILE> GetFilePtr(const std::string &file_name, const std::string &dir_name) throw (DBExceptions);
 
-    //храним указатель, поскольку класс абстрактный
-    DatabaseWrapper *_databaseConnection;
+    DatabaseWrapper _databaseConnection;
 public:
     FilesDatabaseManager();
     ~FilesDatabaseManager() = default;
 
     void SetUserID(int userID);
 
-    void SetUserDirectory(string userDirectory);
+    void SetUserDirectory(const std::string userDirectory);
 
-    int UploadFile(string const& file_name, string const& dir_name, string const& hash_sum);
+    bool UploadFile(const std::string &file_name, const std::string &dir_name, const std::string &hash_sum);
 
-    FILE * DownloadFile(string const& file_name, string const& dir_name);
+    std::shared_ptr<FILE> DownloadFile(const std::string &file_name, const std::string &dir_name) throw(DBExceptions);
 
-    int DeleteFile(string const& file_name, string const& dir_name );
+    bool DeleteFile(const std::string &file_name, const std::string &dir_name);
 
-    vector <string> GetFileList(string const& dir_name);
+    std::vector <std::string> GetFileList(const std::string &dir_name);
 };
 
 

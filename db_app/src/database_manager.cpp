@@ -3,59 +3,76 @@
 //
 
 #include "../inc/database_manager.h"
+using namespace std;
 
 DatabaseManager::DatabaseManager() {
     _usersDatabaseManager = UsersDatabaseManager();
     _filesDatabaseManager = FilesDatabaseManager();
-    _userID = -2;
+    _userID = NIL;
 }
 
 string DatabaseManager::GetUserDir() {
     return _userDirectory;
 }
 
-int DatabaseManager::Register(string const& login, string const& password) {
-    _userID = _usersDatabaseManager.RegisterUser(login, password);
-    if (_userID == -1)
-        return 1;
-    _userDirectory = std::to_string(_userID);
-    _filesDatabaseManager.SetUserID(_userID);
-    _filesDatabaseManager.SetUserDirectory(_userDirectory);
-    return 0;
+
+bool DatabaseManager::Register(const string &login, const string &password) {
+    int userID =  _usersDatabaseManager.RegisterUser(login, password);
+    if (userID == FAIL)
+        return false;
+    else {
+        _userID = userID;
+        _userDirectory = to_string(_userID);
+        _filesDatabaseManager.SetUserID(_userID);
+        _filesDatabaseManager.SetUserDirectory(_userDirectory);
+        return true;
+    }
 }
 
-int DatabaseManager::Authorize(string const& login, string const& password) {
+
+bool DatabaseManager::Authorize(const string &login, const string &password) {
     int userID = _usersDatabaseManager.AuthorizeUser(login, password);
 
-    if (userID == -1)
-        return 1;
-    //в случае, если пользователь уже был зарегестрирован до текущего сессии работы с программой, необходимо достать его ID и запомнить его
-    if (_userID == -2) {
+    if (userID == FAIL)
+        return false;
+    //в случае, если пользователь уже был зарегистрирован до текущего сессии работы с программой, необходимо достать его ID и запомнить его
+    if (_userID == NIL) {
         _userID = userID;
         _userDirectory = to_string(_userID);
         _filesDatabaseManager.SetUserID(_userID);
         _filesDatabaseManager.SetUserDirectory(_userDirectory);
     }
-    return 0;
+    return true;
 }
 
-int DatabaseManager::DeleteUser(string const& login, string const& password) {
+bool DatabaseManager::DeleteUser(const string &login, const string &password) {
     return _usersDatabaseManager.DeleteUser(login, password);
 }
 
-int DatabaseManager::Upload(string const &file_name, string const &dir_name, string const &hash_sum) {
+bool DatabaseManager::Upload(const string &file_name, const string &dir_name, const string &hash_sum) {
     return _filesDatabaseManager.UploadFile(file_name, dir_name, hash_sum);
 }
 
 FILE* DatabaseManager::Download(string const& file_name, string const& dir_name) {
-    return _filesDatabaseManager.DownloadFile(file_name, dir_name);
+    ////пытаемся перехватить исключение, если получилось - пробрасываем дальше серверу
+    ////иначе возвращаем указатель на файл
+    try {
+        FILE *file = _filesDatabaseManager.DownloadFile(file_name, dir_name);
+        return file;
+    }
+    catch (DBExceptions &exceptions) {
+        exceptions.m_what();
+    }
+    return nullptr;
 }
 
-int DatabaseManager::DeleteFile(string const& file_name, string const& dir_name) {
+
+bool DatabaseManager::DeleteFile(const string &file_name, const string &dir_name) {
     return _filesDatabaseManager.DeleteFile(file_name, dir_name);
 }
 
 vector <string> DatabaseManager::GetFileList(string const& dir_name) {
+   ////////////////////////////////////////////////////////
     return _filesDatabaseManager.GetFileList(dir_name);
 }
 

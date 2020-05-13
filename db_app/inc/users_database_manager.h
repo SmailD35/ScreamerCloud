@@ -5,32 +5,30 @@
 #ifndef DB_APP_USERS_DATABASE_MANAGER_H
 #define DB_APP_USERS_DATABASE_MANAGER_H
 
-#include <string>
 #include "database_wrapper.h"
-
-using namespace std;
 
 class UsersDatabaseManager {
 private:
     int _userID;
 
-    static int AddUserRecord(string const &login, string const &password);
+    int AddUserRecord(const std::string &login, const std::string &password);
 
-    static int CheckUserData(string const &login, string const &password);
+    int CheckUserData(const std::string &login, const std::string &password);
 
-    static int DeleteUserRecord(string const &login, string const &password);
+    bool DeleteUserRecord(const std::string &login, const std::string &password);
 
-    //храним указатель, поскольку класс абстрактный
-    DatabaseWrapper *_databaseConnection;
+    bool DeleteUserRecord(int userID);
+
+    DatabaseWrapper _databaseConnection;
 public:
     UsersDatabaseManager();
     ~UsersDatabaseManager() = default;
 
-    int RegisterUser(string const& login, string const& password);
+    int RegisterUser(const std::string &login, const std::string &password);
 
-    int AuthorizeUser(string const& login, string const& password);
+    int AuthorizeUser(const std::string &login, const std::string &password);
 
-    int DeleteUser(string const& login, string const& password);
+    bool DeleteUser(const std::string &login, const std::string &password);
 };
 
 

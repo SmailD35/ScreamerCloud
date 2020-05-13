@@ -11,6 +11,8 @@
 //#include "../inc/interfaces.h"
 #include "../inc/users_database_manager.h"
 
+using namespace std;
+
 #define SUCCESS 0
 #define FAILED 1
 

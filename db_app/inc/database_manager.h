@@ -5,8 +5,6 @@
 #ifndef DB_APP_DATABASE_MANAGER_H
 #define DB_APP_DATABASE_MANAGER_H
 
-
-#include <string>
 #include "files_database_manager.h"
 #include "users_database_manager.h"
 
@@ -18,26 +16,26 @@ private:
 
     int _userID;
 
-    string _userDirectory;
+    std::string _userDirectory;
 public:
     DatabaseManager();
     ~DatabaseManager() = default;
 
-    string GetUserDir();
+    std::string GetUserDir();
 
-    int Register(string const& login, string const& password);
+    bool Register(const std::string &login, const std::string &password);
 
-    int Authorize(string const& login, string const& password);
+    bool Authorize(const std::string &login, const std::string &password);
 
-    int DeleteUser(string const& login, string const& password);
+    bool DeleteUser(const std::string &login, const std::string &password);
 
-    int Upload(string const &file_name, string const &dir_name, string const &hash_sum) ;
+    bool Upload(const std::string &file_name, const std::string &dir_name, const std::string &hash_sum) ;
 
-    FILE * Download(string const& file_name, string const& dir_name);
+    std::shared_ptr<FILE> Download(const std::string &file_name, const std::string &dir_name);
 
-    int DeleteFile(string const& file_name, string const& dir_name);
+    bool DeleteFile(const std::string &file_name, const std::string &dir_name);
 
-    vector <string> GetFileList(string const& dir_name);
+    std::vector <std::string> GetFileList(const std::string &dir_name);
 };
 
 
