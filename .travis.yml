@@ -19,7 +19,7 @@ matrix:
     exclude:
         - os:       osx
           compiler: gcc
-          
+
         - os:  osx
           env: TARGET_CPU=x86 BUILD_CONFIGURATION=Debug
 
@@ -44,3 +44,11 @@ script:
     - if [ $TRAVIS_OS_NAME = osx ]; then ctest --verbose --output-on-failure; fi
     - if [ $TRAVIS_OS_NAME = linux ]; then cppcheck --error-exitcode=1 --inconclusive --enable=all --language=c++ ../source ../include; fi
     - if [ $TRAVIS_OS_NAME = linux ]; then valgrind --error-exitcode=1 --leak-check=full --show-leak-kinds=all tests/test_server; fi  
+
+    - cd db_app
+    - mkdir cmake-build-debug
+    - cd cmake-build-debug
+    - cmake .. -DCMAKE_BUILD_TYPE=$BUILD_CONFIGURATION -DTARGET_CPU=$TARGET_CPU
+    - cmake --build .
+    - if [ $TRAVIS_OS_NAME = linux ]; then cppcheck --error-exitcode=1 --inconclusive --enable=all --language=c++ ../src ../inc; fi
+    - if [ $TRAVIS_OS_NAME = linux ]; then valgrind --error-exitcode=1 --leak-check=full --show-leak-kinds=all test/db_app_test; fi
