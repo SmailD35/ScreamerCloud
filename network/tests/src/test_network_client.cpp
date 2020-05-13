@@ -1,5 +1,5 @@
 #include "../headers/test_network_client.h"
-#include "../../headers/network_client.h"
+#include "../../../network_client/headers/network_client.h"
 
 #define SEND_BUF 1
 #define RECV_BUF 2

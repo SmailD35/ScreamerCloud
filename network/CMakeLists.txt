@@ -4,8 +4,8 @@ set(CMAKE_CXX_STANDARD 14)
 enable_testing()
 
 add_subdirectory(tests)
-add_executable(network src/main.cpp src/network_server.cpp
-        src/network_client.cpp headers/network_client.h
-        tests/src/test_network_client.cpp tests/headers/test_network_client.h)
+
+add_library(network_client SHARED network_client/src/network_client.cpp network_client/headers/network_client.h)
+add_library(network_server SHARED network_server/src/network_server.cpp network_server/headers/network_server.h)
 
 add_test(NAME unit_test COMMAND test_network)

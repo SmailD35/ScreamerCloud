@@ -5,8 +5,8 @@
 #include <string>
 #include "test_network_client.h"
 #include "gtest/gtest.h"
-#include "../../headers/network_client.h"
-#include "../../headers/network_server.h"
+#include "../../../network_client/headers/network_client.h"
+#include "../../network_server/headers/network_server.h"
 #include <cstring>
 
 using namespace std;
