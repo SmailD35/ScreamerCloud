@@ -1,10 +1,5 @@
 #include "commands.h"
 
-UserSession::UserSession()
-{
-
-}
-
 UserSession::~UserSession()
 {
 
@@ -65,23 +60,12 @@ void SendFileListCommand::Undo()
 
 }
 
-Command* Server::CreateCommand(UserSession userSession)
-{
-	Command* result = nullptr;
-	return result;
-}
-
-void Server::ConnectionsLoop()
+void DeleteCommand::Do()
 {
 
 }
 
-void Server::QueriesLoop()
-{
-
-}
-
-void Server::ExecuteCommand()
+void DeleteCommand::Undo()
 {
 
 }

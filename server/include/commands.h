@@ -1,20 +1,18 @@
 #include <queue>
-#include "network_mock.h"
-#include "database_mock.h"
+#include "network_server.h"
+#include "database_manager.h"
 
-enum CmdCodeServer { UPLOAD_SRV, DOWNLOAD_SRV, DELETE_SRV, LIST_SRV, AUTH_SRV, REGISTER_SRV };
+//enum CmdCodeServer { UPLOAD_SRV, DOWNLOAD_SRV, DELETE_SRV, LIST_SRV, AUTH_SRV, REGISTER_SRV };
 
 class UserSession
 {
 public:
 
 	UserSession();
-	UserSession(ConnectionNetwork* userConnection, DatabaseManager* databaseManager)
-		: _userConnection(userConnection), _databaseManager(databaseManager) {};
+	UserSession(ConnectionNetwork userConnection) : _userConnection(userConnection) {};
 	~UserSession();
-	//указатель потому что тесты
-    ConnectionNetwork* _userConnection;
-    DatabaseManager* _databaseManager;
+    ConnectionNetwork _userConnection;
+    DatabaseManager _databaseManager;
     map<string, string> _userQuery;
 
 };
@@ -81,4 +79,13 @@ public:
 	using Command::Command;
 	void Do() override;
     void Undo() override;
+};
+
+class DeleteCommand : public Command
+{
+public:
+
+	using Command::Command;
+	void Do() override;
+	void Undo() override;
 };

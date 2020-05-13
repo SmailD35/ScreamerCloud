@@ -7,24 +7,21 @@
 
 #include <queue>
 #include "commands.h"
-#include "network_mock.h"
-#include "database_mock.h"
+#include "network_server.h"
 
 class Server
 {
 private:
-	//указатель потому что тесты
-	ServerNetwork* _network;
+	ServerNetwork _network;
 	queue<ConnectionNetwork> _connections;
-	queue<Command> _queries;
+	queue<Command*> _queries;
 	Command* CreateCommand(UserSession userSession);
 
 public:
 
 	void ConnectionsLoop();
 	void QueriesLoop();
-	void ExecuteCommand();
+	void WorkerLoop();
 };
-
 
 #endif //SERVER_SERVER_H
