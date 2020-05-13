@@ -40,23 +40,23 @@ Command* Server::CreateCommand(UserSession userSession)
 		switch (stoi(query["cmd_code"]))
 		{
 		case UPLOAD_CLI:
-			newCommand = new SendFileCommand();
+			newCommand = new SendFileCommand(userSession);
 			break;
 
 		case DOWNLOAD_CLI:
-			newCommand = new RecvFileCommand();
+			newCommand = new RecvFileCommand(userSession);
 			break;
 
 		case DELETE_CLI:
-			newCommand = new DeleteCommand();
+			newCommand = new DeleteCommand(userSession);
 			break;
 
 		case LIST_CLI:
-			newCommand = new SendFileListCommand();
+			newCommand = new SendFileListCommand(userSession);
 			break;
 
 		case REGISTER_CLI:
-			newCommand = new RegisterUserCommand();
+			newCommand = new RegisterUserCommand(userSession);
 			break;
 		}
 
