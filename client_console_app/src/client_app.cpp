@@ -25,8 +25,7 @@ void ClientApp::ParseCmdArguments(int argc, char** argv)
 		("download", po::value<std::string>(), "download file")
 		("delete", po::value<std::string>(), "delete file from cloud storage")
 		("list,l", po::value<std::string>()->default_value(string("/")), "list files in 'arg' directory")
-		("register", "register new user")
-		("login", "login user");
+		("register", "register new user");
 
 	po::variables_map vm;
 	po::store(po::parse_command_line(argc, argv, desc), vm);
@@ -38,168 +37,142 @@ void ClientApp::ParseCmdArguments(int argc, char** argv)
 	}
 
 	if (vm.count("upload")) {
-		_clientRequest.cmdCode = UPLOAD_CLI;
-		_clientRequest.requestData["file_name"] = vm["upload"].as<std::string>();
+		_clientRequest["cmd_code"] = to_string(UPLOAD_CLI);
+		_clientRequest["file_name"] = vm["upload"].as<std::string>();
 		return;
 	}
 
 	if (vm.count("download")) {
-		_clientRequest.cmdCode = DOWNLOAD_CLI;
-		_clientRequest.requestData["file_name"] = vm["download"].as<std::string>();
+		_clientRequest["cmd_code"] = to_string(DOWNLOAD_CLI);
+		_clientRequest["file_name"] = vm["download"].as<std::string>();
 		return;
 	}
 
 	if (vm.count("delete")) {
-		_clientRequest.cmdCode = DELETE_CLI;
-		_clientRequest.requestData["file_name"] = vm["delete"].as<std::string>();
+		_clientRequest["cmd_code"] = to_string(DELETE_CLI);
+		_clientRequest["file_name"] = vm["delete"].as<std::string>();
 		return;
 	}
 
 	if (vm.count("list")) {
-		_clientRequest.cmdCode = LIST_CLI;
-		_clientRequest.requestData["path"] = vm["list"].as<std::string>();
+		_clientRequest["cmd_code"] = to_string(LIST_CLI);
+		_clientRequest["path"] = vm["list"].as<std::string>();
 		return;
 	}
 
 	if (vm.count("register")) {
-		_clientRequest.cmdCode = REGISTER_CLI;
-		return;
-	}
-
-	if (vm.count("login")) {
-		_clientRequest.cmdCode = LOGIN_CLI;
+		_clientRequest["cmd_code"] = to_string(REGISTER_CLI);
 		return;
 	}
 }
 
 int ClientApp::ExecuteRequest()
 {
-	if (!_clientRequest.cmdCode) return 0;
-	switch (_clientRequest.cmdCode)
+	if (!_clientRequest.count("cmd_code")) return 0;
+
+	switch (stoi(_clientRequest["cmd_code"]))
 	{
 	case UPLOAD_CLI:
-		return UploadFile(_clientRequest.requestData["file_name"]);
+		return UploadFile();
 	case DOWNLOAD_CLI:
-		if(_clientRequest.requestData.count("download_path"))
-			return DownloadFile(_clientRequest.requestData["file_name"],
-				_clientRequest.requestData["download_path"]);
-		else
-			return DownloadFile(_clientRequest.requestData["file_name"]);
+		return DownloadFile();
 	case DELETE_CLI:
-		return DeleteFile(_clientRequest.requestData["file_name"]);
+		return DeleteFile();
 	case LIST_CLI:
-		return ListDirectory(_clientRequest.requestData["path"]);
+		return List();
 	case REGISTER_CLI:
 		return RegisterUser();
-	case LOGIN_CLI:
-		return LoginUser();
 	default:
 		return -2;
 	}
 }
 
-int ClientApp::UploadFile(const std::string &file_name)
+int ClientApp::UploadFile()
 {
-	_clientNetwork->SendMsg(_clientRequest.requestData);
-	map<string,string> receivedMsg;
-	receivedMsg = _clientNetwork->RecvMsg();
-	if (!receivedMsg.count("cmd_code"))
-		return 1;
-	if (receivedMsg["cmd_code"] != UPLOAD_SRV)
-		return 2;
-	if (!receivedMsg.count("error_code"))
-		return 3;
-	if (receivedMsg["error_code"] == "0")
+	// TODO: добавить поток с прогрессбаром
+	Request();
+	if (ValidateResponse())
+	{
 		_clientNetwork->SendFile(_file);
+		return 0;
+	}
 	else
-		return 4;
-	return 0;
+		return -1;
 }
 
-int ClientApp::DownloadFile(const std::string &file_name)
+int ClientApp::DownloadFile()
 {
-	_clientNetwork->SendMsg(_clientRequest.requestData);
-	map<string,string> receivedMsg;
-	receivedMsg = _clientNetwork->RecvMsg();
-	if (!receivedMsg.count("cmd_code"))
-		return 1;
-	if (receivedMsg["cmd_code"] != DOWNLOAD_SRV)
-		return 2;
-	if (!receivedMsg.count("error_code"))
-		return 3;
-	if (receivedMsg["error_code"] == "0")
+	// TODO: добавить поток с прогрессбаром
+	Request();
+	if (ValidateResponse())
 		_clientNetwork->RecvFile(&_file);
-	else
-		return 4;
 	return 0;
 }
 
-int ClientApp::DownloadFile(const std::string &file_name, const std::string &download_path)
+int ClientApp::DeleteFile()
 {
-	cout << "Download file: " << file_name << " in " << download_path << " directory\n";
-	return 0;
-}
-
-int ClientApp::DeleteFile(const std::string &file_name)
-{
-	_clientNetwork->SendMsg(_clientRequest.requestData);
-	map<string,string> receivedMsg;
-	receivedMsg = _clientNetwork->RecvMsg();
-	if (!receivedMsg.count("cmd_code"))
-		return 1;
-	if (receivedMsg["cmd_code"] != DELETE_SRV)
-		return 2;
-	if (!receivedMsg.count("error_code"))
-		return 3;
-	if (receivedMsg["error_code"] == "0")
+	Request();
+	if (!ValidateResponse())
+	{
+		cout << "File deleted successfully" << endl;
 		return 0;
+	}
 	else
-		return 4;
+	{
+		cout << "Delete file failed" << endl;
+		return -1;
+	}
 }
 
-int ClientApp::ListAll()
+int ClientApp::List()
 {
-	_clientNetwork->SendMsg(_clientRequest.requestData);
-	map<string,string> receivedMsg;
-	receivedMsg = _clientNetwork->RecvMsg();
-	if (!receivedMsg.count("cmd_code"))
-		return 1;
-	if (receivedMsg["cmd_code"] != LIST_SRV)
-		return 2;
-	if (!receivedMsg.count("error_code"))
-		return 3;
-	if (receivedMsg["error_code"] == "0")
-		return 0;
-	else
-		return 4;
-}
-
-int ClientApp::ListDirectory(const std::string &directory_path)
-{
-	cout << "List directory: " << directory_path << "\n";
-	return 0;
+	Request();
+	ValidateResponse();
+	// TODO:: вывод списка файлов
 }
 
 int ClientApp::RegisterUser()
 {
-	cout << "Registration process\n";
-	return 0;
+	string username;
+	string password;
+	cout << "Enter username: ";
+	cin >> username;
+	cout << endl << "Enter password: ";
+	cin >> password;
+	cout << endl;
+
+	_clientRequest["username"] = username;
+	_clientRequest["password"] = password;
+
+	Request();
+	if (!ValidateResponse())
+	{
+		cout << "Registration success\n";
+		return 0;
+	}
+	else
+	{
+		cout << "Registration failed\n";
+		return -1;
+	}
 }
 
-int ClientApp::LoginUser()
+void ClientApp::Request()
 {
-	cout << "Login process\n";
-	return 0;
+	_clientNetwork->SendMsg(_clientRequest);
+	_serverResponse = _clientNetwork->RecvMsg();
 }
 
-int ClientApp::Help()
+bool ClientApp::ValidateResponse()
 {
-	cout << "help screamer\n";
-	return 0;
-}
+	if (!_serverResponse.count("cmd_code"))
+		return false;
+	if (_serverResponse["cmd_code"] != _clientRequest["cmd_code"])
+		return false;
+	if (!_serverResponse.count("error_code"))
+		return false;
+	if (_serverResponse["error_code"] == "0")
+		return true;
 
-int ClientApp::Help(const std::string &help_topic)
-{
-	cout << "help " << help_topic << "\n";
-	return 0;
+	return false;
 }

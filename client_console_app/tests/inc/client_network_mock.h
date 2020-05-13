@@ -5,11 +5,7 @@
 #ifndef CLIENT_CONSOLE_APP_TESTS_CLIENT_NETWORK_MOCK_H_
 #define CLIENT_CONSOLE_APP_TESTS_CLIENT_NETWORK_MOCK_H_
 
-#define UPLOAD_SRV 		"1"
-#define DOWNLOAD_SRV 	"2"
-#define DELETE_SRV 		"3"
-#define LIST_SRV 		"4"
-#define AUTH_SRV 		"5"
+enum CmdCodeServer { UPLOAD_SRV, DOWNLOAD_SRV, DELETE_SRV, LIST_SRV, AUTH_SRV };
 
 #include <string>
 #include <vector>

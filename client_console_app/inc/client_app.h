@@ -20,12 +20,6 @@ struct User
 	std::string password;
 };
 
-struct ClientRequest
-{
-	int cmdCode = 0;
-	std::map <std::string,std::string> requestData;
-};
-
 class ClientApp
 {
  public:
@@ -35,21 +29,20 @@ class ClientApp
 	void ParseCmdArguments(int argc, char** argv);
 	int ExecuteRequest();
  private:
-	int UploadFile(const std::string &file_name);
-	int DownloadFile(const std::string &file_name);
-	int DownloadFile(const std::string &file_name, const std::string &download_path);
-	int DeleteFile(const std::string &file_name);
-	int ListAll();
-	int ListDirectory(const std::string &directory_path);
+	int UploadFile();
+	int DownloadFile();
+	int DeleteFile();
+	int List();
 	int RegisterUser();
-	int LoginUser();
-	int Help();
-	int Help(const std::string &help_topic);
+	void Request();
+	bool ValidateResponse();
+
  private:
 	std::string _currentDirectory;
 	User _user;
 	File _file;
-	ClientRequest _clientRequest;
+	std::map <std::string,std::string> _clientRequest;
+	std::map <std::string,std::string> _serverResponse;
 	ClientNetwork* _clientNetwork;
 };
 
