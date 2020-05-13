@@ -12,7 +12,25 @@ DatabaseWrapper::DatabaseWrapper() {
 }
 
 int DatabaseWrapper::CheckUserData(string const& login, string const& password) {
+    unique_ptr<PGresult> query_result;
+    shared_ptr<PGconn> connection = GetConnection(USERS_DB);
 
+    std::string query = "SELECT ID_user FROM data_table WHERE login = " + login + " AND password = " + password;
+
+    query_result.reset(PQexec(connection.get(), query.c_str()));
+
+    if (PQresultStatus(query_result.get()) != PGRES_TUPLES_OK)
+        throw std::runtime_error(PQresultErrorMessage(query_result.get()));
+
+    if (!PQntuples(query_result.get()))
+        return FAIL;
+    else {
+        string result;
+        ///проверить, что возвращает функция, если такого поля нет (пустую строку или надо использовать PQisnull)
+        result = PQgetvalue(query_result.get(), 0, 0);
+            //// использовать lexical cast для перевода в int
+            /////и возвращаем значение
+    }
 }
 
 int DatabaseWrapper::AddUserRecord(const string &login, const string &password) throw (DBExceptions) {
@@ -47,7 +65,6 @@ shared_ptr<PGconn> DatabaseWrapper::GetConnection(DBType db_type) {
     shared_ptr<PGconn> connection;
     if (db_type == USERS_DB) {
         connection.reset(PQconnectdb(_users_db_info.c_str()));
-        ////изменить функцию подключения на ту, где будет необходим пароль (или можно ли в эту стркоу подключения пихать пароль?)
     }
     else {
         connection.reset(PQconnectdb(_files_db_info.c_str()));
@@ -75,5 +92,9 @@ void DatabaseWrapper::SetUserID(int userID) {
 
 bool DatabaseWrapper::DeleteUserRecord(int userID) throw (DBExceptions){
     return true;
+}
+
+void DatabaseWrapper::GetPathToUsersFiles() {
+    ////считываем из конфига путь к хранящимся файлам пользователей
 }
 

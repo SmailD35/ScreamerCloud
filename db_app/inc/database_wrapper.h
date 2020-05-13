@@ -34,6 +34,8 @@ public:
 
 
 ////добавить логирование и чтение данных из конфиг-файла
+
+///// надо ли иметь обертку для buildera
 class DatabaseWrapper {
 private:
     std::string _files_db_info;
@@ -42,6 +44,7 @@ private:
 
     int _userID;
 
+    std::string _path_users_storage;
     //std::shared_ptr<PGconn>  _connection;
 
     /////нужно ли каждый раз создавать подключение или можно его хранить в объекте ?
@@ -50,10 +53,10 @@ private:
 
     int CloseConnection(DBType db_type);
 
-    //имена берутся из конфига?
     void GetFilesDBInfo();
     void GetUsersDBInfo();
 
+    void GetPathToUsersFiles();
 public:
     DatabaseWrapper();
     ~DatabaseWrapper() = default;
