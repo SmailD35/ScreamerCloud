@@ -1,0 +1,29 @@
+Установка postgresql:
+
+https://www.postgresql.org/download/linux/ubuntu/ - инструкция здесь
+
+https://info-comp.ru/sisadminst/598-install-postgresql-10-on-ubuntu-server.html
+
+подготовка к работе:
+
+- sudo su postgres
+
+- psql
+
+- create user screamer_cloud with password '1221';
+
+- create database users_db;
+
+- create database files_db;
+
+- grant all privileges on database users_db to screamer_cloud;
+
+- grant all privileges on database files_db to screamer_cloud;
+
+
+В файле sudo nano /etc/postgresql/12/main/postgresql.conf
+записываем listen_addresses = '*'
+
+(вместо закоментированного localhost)
+еще установка libpq!!!!
+sudo apt-get install libpq-dev
