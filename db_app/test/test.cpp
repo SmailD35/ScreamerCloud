@@ -68,6 +68,35 @@ protected:
     void TearDown()  override {}
 };
 
+
+class TestDeletings : public ::testing::Test {
+protected:
+    DatabaseManager _mng;
+
+    string _login;
+    string _password;
+
+    string _file_name;
+    string _dir_name;
+
+    string _wrong_file_name;
+    string _wrong_password;
+
+    void SetUp() override {
+        UserConnectionData userConnectionData = UserConnectionData();
+        _mng = DatabaseManager();
+
+        _login = userConnectionData.login;
+        _password = userConnectionData.password;
+
+        _file_name = userConnectionData.file_name;
+        _dir_name = userConnectionData.dir_name;
+        _wrong_file_name = userConnectionData.wrong_file_name;
+        _wrong_password = userConnectionData.wrong_password;
+    }
+};
+
+/*
 TEST(MainFuncTest, test1) {
     DatabaseManager _mng = DatabaseManager();
 
@@ -75,71 +104,75 @@ TEST(MainFuncTest, test1) {
     //_mng.Register("lala", "lala");
    // UserSession session = UserSession();
 }
+*/
 
 /** Тест на успешную регистрацию и авторизацию **/
 TEST_F(TestUserData, test_succesful) {
-    int reg_res = _mng.Register(_login, _password);
+    bool reg_res = _mng.Register(_login, _password);
     //проверка на то, что регистрация была пройдена успешно
-    ASSERT_EQ(reg_res, SUCCESS);
+    ASSERT_TRUE(reg_res);
 
-    int auth_res = _mng.Authorize(_login, _password);
+    bool auth_res = _mng.Authorize(_login, _password);
     //проверка на то, что авторизация только что зарегистрированного пользователя прошла успешно
-    ASSERT_EQ(auth_res, SUCCESS);
+    ASSERT_TRUE(auth_res);
 }
 
 /** Тест на неудачную регистрацию (логин уже занят) и авторизацию (неправильный пароль) **/
 TEST_F(TestUserData, test_failing_registration_authorization) {
-    int reg_res = _mng.Register(_login, _password);
-    ASSERT_EQ(reg_res, FAILED);
+    bool reg_res = _mng.Register(_login, _password);
+    ASSERT_FALSE(reg_res);
 
-    int auth_res = _mng.Authorize(_login, _wrong_password);
-    EXPECT_EQ(auth_res, FAILED);
+    bool auth_res = _mng.Authorize(_login, _wrong_password);
+    EXPECT_FALSE(auth_res);
 }
 
 /** Тест удачное опубликование файла **/
 TEST_F(TestFileWork, test_succesful_add_files) {
-    int upload = _mng.Upload(_file_name, _dir_name, _hash_sum);
-    EXPECT_EQ(upload, SUCCESS);
+    bool upload = _mng.Upload(_file_name, _dir_name, _hash_sum);
+    EXPECT_TRUE(upload);
 }
 
 /** Тест на удачное скачивание файла **/
 TEST_F(TestFileWork, test_succesful_download_files) {
-    FILE * download = _mng.Download(_file_name, _dir_name);
+    shared_ptr<FILE> download = _mng.Download(_file_name, _dir_name);
     //EXPECT_EQ(download, true);
     EXPECT_TRUE(download);
 }
 
 /** Тест на неуспешное добавление файла (уже существует) **/
 TEST_F(TestFileWork, test_failing_adding_files) {
-    int upload = _mng.Upload(_file_name, _dir_name, _hash_sum);
-    EXPECT_EQ(upload, FAILED);
+    bool upload = _mng.Upload(_file_name, _dir_name, _hash_sum);
+    EXPECT_FALSE(upload);
 }
 
 /** Тест на неудачное скачивание файла (неверное имя файла) **/
 TEST_F(TestFileWork, test_failing_download_files) {
-    FILE * download = _mng.Download(_wrong_file_name, _dir_name);
+    shared_ptr<FILE> download = _mng.Download(_wrong_file_name, _dir_name);
     //EXPECT_EQ(download, false);
     EXPECT_FALSE(download);
 }
 
 /** Тест на неудачное удаление файла (неверное имя файла) **/
-TEST_F(TestFileWork, test_failing_delete_files) {
-    int del_file = _mng.DeleteFile(_wrong_file_name, _dir_name);
-    EXPECT_EQ(del_file, FAILED);
+TEST_F(TestDeletings, test_failing_delete_files) {
+    _mng.Authorize(_login, _password);
+    bool del_file = _mng.DeleteFile(_wrong_file_name, _dir_name);
+    EXPECT_FALSE(del_file);
 }
 
 
 /** Тест на удачное удаление файла **/
-TEST_F(TestFileWork, test_succesful_delete_files) {
-    int del_file = _mng.DeleteFile(_file_name, _dir_name);
-    EXPECT_EQ(del_file, SUCCESS);
+TEST_F(TestDeletings, test_succesful_delete_files) {
+    _mng.Authorize(_login, _password);
+    bool del_file = _mng.DeleteFile(_file_name, _dir_name);
+    EXPECT_TRUE(del_file);
 }
 
 /** Тест на неудачное (неправильный пароль) удаление пользователя и удачное**/
-TEST_F(TestUserData, test_failing_succesful_deleting) {
-    int del_res = _mng.DeleteUser(_login, _wrong_password);
-    ASSERT_EQ(del_res, FAILED);
+TEST_F(TestDeletings, test_failing_succesful_deleting) {
+    bool del_res = _mng.DeleteUser(_login, _wrong_password);
+    ASSERT_FALSE(del_res);
 
     del_res = _mng.DeleteUser(_login, _password);
-    ASSERT_EQ(del_res, SUCCESS);
+    ASSERT_TRUE(del_res);
 }
+

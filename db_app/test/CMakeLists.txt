@@ -25,5 +25,5 @@ add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/googletest-src
         EXCLUDE_FROM_ALL)
 
 include_directories(BEFORE ${GTEST_INCLUDE_DIRS})
-add_executable(db_app_test test.cpp ../inc/database_manager.h ../src/database_manager.cpp ../src/users_database_manager.cpp ../src/files_database_manager.cpp)
-target_link_libraries(db_app_test gtest_main gmock_main)
+add_executable(db_app_test test.cpp ../inc/database_manager.h ../src/database_manager.cpp ../src/users_database_manager.cpp ../src/files_database_manager.cpp ../src/database_wrapper.cpp)
+target_link_libraries(db_app_test gtest_main gmock_main pq)

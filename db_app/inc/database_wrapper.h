@@ -8,10 +8,18 @@
 #include <string>
 #include <vector>
 
-#include <libpq-fe.h>
+extern "C"
+{
+    #include <libpq-fe.h>
+}
+
 #include <iostream>
 
 #include <memory>
+
+#include <boost/filesystem.hpp>
+#include <boost/lexical_cast.hpp>
+#include <regex>
 
 enum Msg{
     NIL = -2,
@@ -23,19 +31,8 @@ enum DBType{
     FILES_DB
 };
 
-class DBExceptions {
-private:
-    std::string m_error;
-
-public:
-    DBExceptions(std::string error) : m_error(error) {}
-    void m_what() { std::cout << m_error; } ////сделать вывод не в iostream, а в логи
-};
-
-
 ////добавить логирование и чтение данных из конфиг-файла
 
-///// надо ли иметь обертку для buildera
 class DatabaseWrapper {
 private:
     std::string _files_db_info;
@@ -44,44 +41,36 @@ private:
 
     int _userID;
 
-    std::string _path_users_storage;
-    //std::shared_ptr<PGconn>  _connection;
-
-    /////нужно ли каждый раз создавать подключение или можно его хранить в объекте ?
-    ////по идее надо каждый раз создавать новое, чтобы подключаться то к users, то к files
     std::shared_ptr <PGconn> GetConnection(DBType db_type);
 
-    int CloseConnection(DBType db_type);
-
     void GetFilesDBInfo();
+
     void GetUsersDBInfo();
 
-    void GetPathToUsersFiles();
 public:
     DatabaseWrapper();
+
     ~DatabaseWrapper() = default;
 
     void SetUserID(int userID);
 
-    int CheckUserData(const std::string &login, const std::string &password);
+    int CheckUserID(const std::string &login, const std::string &password);
 
-    int AddUserRecord(const std::string &login, const std::string &password) throw(DBExceptions);
+    int AddUserRecord(const std::string &login, const std::string &password);
 
-    int DeleteUserRecord(const std::string &login, const std::string &password) throw(DBExceptions);
+    void DeleteUserRecord(int userID);
 
-    bool DeleteUserRecord(int userID) throw(DBExceptions);
+    bool CheckExistingLogin(const std::string &login);
 
     //------------------------------------------------------------------------------
 
-    int CheckExistingFile(const std::string &file_name, const std::string &dir_name);
+    int CheckFileID(const std::string &file_name, const std::string &dir_name);
 
-    int AddFileRecord(const std::string &file_name, const std::string &dir_name, const std::string &hash_sum) throw(DBExceptions);
+    int AddFileRecord(const std::string &file_name, const std::string &dir_name, const std::string &hash_sum);
 
-    int DeleteFileRecord(const std::string &file_name, const std::string &dir_name) throw(DBExceptions);
+    void DeleteFileRecord(int fileID);
 
-    int GetFileID(const std::string &file_name, const std::string &dir_name) throw(DBExceptions);
-
-    std::vector <std::string> GetFileList(std::string const& dir_name);
+    std::map <std::string, std::string> GetFileList(std::string const& dir_name);
 };
 
 

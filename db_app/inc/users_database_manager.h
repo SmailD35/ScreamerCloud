@@ -11,17 +11,10 @@ class UsersDatabaseManager {
 private:
     int _userID;
 
-    int AddUserRecord(const std::string &login, const std::string &password);
-
-    int CheckUserData(const std::string &login, const std::string &password);
-
-    bool DeleteUserRecord(const std::string &login, const std::string &password);
-
-    bool DeleteUserRecord(int userID);
-
     DatabaseWrapper _databaseConnection;
 public:
     UsersDatabaseManager();
+
     ~UsersDatabaseManager() = default;
 
     int RegisterUser(const std::string &login, const std::string &password);

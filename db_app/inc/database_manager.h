@@ -19,6 +19,7 @@ private:
     std::string _userDirectory;
 public:
     DatabaseManager();
+
     ~DatabaseManager() = default;
 
     std::string GetUserDir();
@@ -35,7 +36,7 @@ public:
 
     bool DeleteFile(const std::string &file_name, const std::string &dir_name);
 
-    std::vector <std::string> GetFileList(const std::string &dir_name);
+    std::map <std::string, std::string> GetFileList(const std::string &dir_name);
 };
 
 

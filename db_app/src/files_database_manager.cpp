@@ -7,9 +7,9 @@
 using namespace std;
 
 FilesDatabaseManager::FilesDatabaseManager() {
-   // _userID = -1;
     _userID = NIL;
     _userDirectory = "";
+    _databaseConnection = DatabaseWrapper();
 }
 
 void FilesDatabaseManager::SetUserID(int userID) {
@@ -21,54 +21,81 @@ void FilesDatabaseManager::SetUserDirectory(string userDirectory) {
     _userDirectory = std::move(userDirectory);
 }
 
-//файл найден - true, иначе - false
-bool FilesDatabaseManager::CheckExistingFile(const string &file_name, const string &dir_name) {}
-
-////ошибки при работе с записью в БД обрабатываются исключениями
-bool FilesDatabaseManager::AddFileRecord(const string &file_name, const string &dir_name, const string &hash_sum) {}
-bool FilesDatabaseManager::DeleteFileRecord(const string &file_name, const string &dir_name) {}
-
-///////////////////////////////////////////////////ПЕРЕДАВАТЬ НЕ ГОЛЫЕ УКАЗАТЕЛИ!!!!
-FILE * FilesDatabaseManager::GetFilePtr(string const &file_name, string const &dir_name) throw (DBExceptions){
+///////////////////////////////////////////////////////////////////////////////
+std::shared_ptr<FILE> FilesDatabaseManager::GetFilePtr(int file_ID) {
     ////если указатель на файл не может быть взят, throw
+    return nullptr;
 }
 
 bool FilesDatabaseManager::UploadFile(const string &file_name, const string &dir_name, const string &hash_sum) {
-    if (!CheckExistingFile(file_name, dir_name))
+    try {
+        _databaseConnection.AddFileRecord(file_name, dir_name, hash_sum);
+        return true;
+        ///////////////////////////////////////////////////////////////////////////
+        ////переименовать существующий файл
+    }
+    catch(exception &exc) {
+        cout << exc.what() << endl; //////логи
         return false;
-    if (!AddFileRecord(file_name, dir_name, hash_sum))
-        return false;
-    return true;
+    }
 }
 
-///??? либо лучше возвращать nullptr ???
-FILE* FilesDatabaseManager::DownloadFile(string const& file_name, string const& dir_name) throw (DBExceptions) {
-    if (CheckExistingFile(file_name, dir_name)) {
-        try {
-            FILE *file = GetFilePtr(file_name, dir_name);
-            return file;
-        }
-        catch (DBExceptions &exceptions) {
-            exceptions.m_what(); //залогируем сообщение о том, что не удалось взять указатель на файл (системная ошибка)
-        }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+shared_ptr<FILE> FilesDatabaseManager::DownloadFile(string const& file_name, string const& dir_name) {
+    int fileID;
+    try {
+        fileID = _databaseConnection.CheckFileID(file_name, dir_name);
     }
-    else
-        throw DBExceptions("Such file doesn't exist");
-    return nullptr; //?
+    catch (exception &exc) {
+        cout << exc.what() << endl;
+        return nullptr;
+    }
+
+    shared_ptr<FILE> file(GetFilePtr(fileID));
+    return file;
 }
 
 bool FilesDatabaseManager::DeleteFile(const string &file_name, const string &dir_name) {
-    if (!CheckExistingFile(file_name, dir_name))
+    int fileID;
+    try {
+         fileID = _databaseConnection.CheckFileID(file_name, dir_name);
+         if (fileID == FAIL)
+             return false;
+    }
+    catch (exception &exc) {
+        cout << exc.what() << endl; ////////log
         return false;
-    if (!DeleteFileRecord(file_name, dir_name))
+    }
+
+    try {
+        _databaseConnection.DeleteFileRecord(fileID);
+        return true;
+    }
+    catch (exception &exc) {
+        cout << exc.what() << endl; ////////log
         return false;
-    return true;
+    }
 }
 
-////////////////////ПРОДУМАТЬ
-vector <string> FilesDatabaseManager::GetFileList(string const& dir_name) {
-    ////if (!CheckExistingFile(file_name, dir_name)) {}
-    ////проверка на существование такой директории (запись user_path в БД пользователя), если не найдено - бросаем исключение
-    ////если директория найдена, вытаскиваем из БД соответсвтующие имена файлов (рекурсивный или нерекурсивный вывод списка файлов?)
-    ////может быть, лучше возвращать список файлов в другой структуре
+///нерекурсивный вывод файлов соответствующей директории
+map<string, string> FilesDatabaseManager::GetFileList(string const& dir_name) {
+    map<string, string> file_list;
+    try {
+        file_list = _databaseConnection.GetFileList(dir_name);
+    }
+    catch (exception &exc) {
+        cout << exc.what() << endl; ////логи
+    }
+    return file_list;
+}
+
+
+void FilesDatabaseManager::GetPathToUsersStorage() {
+    _path_users_storage = "../users_files/";
+    ////считываем из конфига путь к хранящимся файлам пользователей
+}
+
+bool FilesDatabaseManager::CheckExistingFile(const std::string &file_name, const std::string &dir_name) {
+    return _databaseConnection.CheckFileID(file_name, dir_name) != 0;
 }

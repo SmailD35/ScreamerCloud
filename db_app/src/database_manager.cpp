@@ -53,17 +53,9 @@ bool DatabaseManager::Upload(const string &file_name, const string &dir_name, co
     return _filesDatabaseManager.UploadFile(file_name, dir_name, hash_sum);
 }
 
-FILE* DatabaseManager::Download(string const& file_name, string const& dir_name) {
-    ////пытаемся перехватить исключение, если получилось - пробрасываем дальше серверу
-    ////иначе возвращаем указатель на файл
-    try {
-        FILE *file = _filesDatabaseManager.DownloadFile(file_name, dir_name);
-        return file;
-    }
-    catch (DBExceptions &exceptions) {
-        exceptions.m_what();
-    }
-    return nullptr;
+std::shared_ptr<FILE> DatabaseManager::Download(string const& file_name, string const& dir_name) {
+    std::shared_ptr<FILE> file(_filesDatabaseManager.DownloadFile(file_name, dir_name));
+    return file;
 }
 
 
@@ -71,8 +63,7 @@ bool DatabaseManager::DeleteFile(const string &file_name, const string &dir_name
     return _filesDatabaseManager.DeleteFile(file_name, dir_name);
 }
 
-vector <string> DatabaseManager::GetFileList(string const& dir_name) {
-   ////////////////////////////////////////////////////////
+map <string, string> DatabaseManager::GetFileList(string const& dir_name) {
     return _filesDatabaseManager.GetFileList(dir_name);
 }
 
