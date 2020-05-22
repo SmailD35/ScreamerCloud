@@ -8,7 +8,7 @@ using namespace std;
 
 File::File()
 {
-
+	_chunksCount = 50;
 }
 
 File::~File()
@@ -33,6 +33,7 @@ FILE* File::GetFile()
 
 char* File::GetNextChunk()
 {
+	_chunksReaded++;
 	return nullptr;
 }
 
@@ -43,7 +44,8 @@ void File::ResetChunks()
 
 int File::GetProgress()
 {
-	return 0;
+	if (_chunksCount == 0) return 0;
+	return int(float(_chunksReaded) / float(_chunksCount) * 100);
 }
 
 void File::SetFile(string file_name)
