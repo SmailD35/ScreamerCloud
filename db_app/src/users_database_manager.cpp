@@ -4,6 +4,7 @@
 
 #include "../inc/users_database_manager.h"
 using namespace std;
+namespace fs = boost::filesystem;
 
 UsersDatabaseManager::UsersDatabaseManager() {
     _userID = NIL;
@@ -19,6 +20,8 @@ int UsersDatabaseManager::RegisterUser(string const& login, string const& passwo
                 int add_result = _databaseConnection.AddUserRecord(login, password);
                 _userID = add_result;
                 _databaseConnection.SetUserID(add_result);
+
+                fs::create_directory(_databaseConnection.GetUsersStoragePath() + to_string(add_result));
                 return _userID;
             }
             catch (exception &exc) {
@@ -58,7 +61,15 @@ bool UsersDatabaseManager::DeleteUser(const string &login, const string &passwor
         if (userID != FAIL) {
             try {
                 _databaseConnection.DeleteUserRecord(userID);
-                    return true;
+                try {
+                    _databaseConnection.DeleteAllFiles();
+                    fs::remove(_databaseConnection.GetUsersStoragePath() + to_string(userID));
+                }
+                catch (exception &exc) {
+                    std::cout << exc.what() << std::endl; ///log
+                    return false;
+                }
+                return true;
             }
             catch (exception &exc) {
                 std::cout << exc.what() << std::endl; ///log

@@ -24,6 +24,8 @@ public:
 
     std::string GetUserDir();
 
+    unsigned long CheckAvailableSpace();
+
     bool Register(const std::string &login, const std::string &password);
 
     bool Authorize(const std::string &login, const std::string &password);

@@ -5,7 +5,7 @@
 #include "../inc/database_wrapper.h"
 using namespace std;
 using boost::lexical_cast;
-namespace fs = boost::filesystem;
+//namespace fs = boost::filesystem;
 
 DatabaseWrapper::DatabaseWrapper() {
     GetUsersDBInfo();
@@ -259,5 +259,34 @@ void DatabaseWrapper::DeleteFileRecord(int fileID) {
         throw std::runtime_error(PQresultErrorMessage(query_result.get()));
     else
         return;
+}
+
+void DatabaseWrapper::DeleteAllFiles() {
+    shared_ptr<PGconn> connection;
+    try {
+        connection = GetConnection(FILES_DB);
+    }
+    catch(std::exception &exc) {
+        std::cout << exc.what() << std::endl; //////вывести в лог
+    }
+
+    std::string query = "DELETE FROM files_data WHERE id_user = " + to_string(_userID);
+    std::cout <<  "      " << query << std::endl;
+
+    auto res_deleter = [](PGresult* r) { PQclear(r);};
+    std::unique_ptr <PGresult, decltype(res_deleter)> query_result(PQexec(connection.get(), query.c_str()), res_deleter);
+
+    if (PQresultStatus(query_result.get()) != PGRES_COMMAND_OK)
+        throw std::runtime_error(PQresultErrorMessage(query_result.get()));
+    else
+        return;
+}
+
+void DatabaseWrapper::SetUsersStoragePath(const string &path) {
+    _users_storage_path = path;
+}
+
+std::string DatabaseWrapper::GetUsersStoragePath() {
+    return _users_storage_path;
 }
 

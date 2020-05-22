@@ -4,6 +4,7 @@
 
 #include "../inc/database_manager.h"
 using namespace std;
+namespace fs = boost::filesystem;
 
 DatabaseManager::DatabaseManager() {
     _usersDatabaseManager = UsersDatabaseManager();
@@ -67,3 +68,8 @@ map <string, string> DatabaseManager::GetFileList(string const& dir_name) {
     return _filesDatabaseManager.GetFileList(dir_name);
 }
 
+unsigned long DatabaseManager::CheckAvailableSpace() {
+    fs::space_info info = fs::space(_filesDatabaseManager.GetPathToUsersStorage());
+    return info.available;
+}
+ 

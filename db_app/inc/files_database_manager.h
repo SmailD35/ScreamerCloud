@@ -15,7 +15,7 @@ private:
 
     std::string _path_users_storage;
 
-    void GetPathToUsersStorage();
+    void SetPathToUsersStorage();
 
     std::shared_ptr<FILE> GetFilePtr(int file_ID);
 
@@ -24,6 +24,8 @@ public:
     FilesDatabaseManager();
 
     ~FilesDatabaseManager() = default;
+
+    std::string  GetPathToUsersStorage();
 
     void SetUserID(int userID);
 

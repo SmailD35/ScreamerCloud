@@ -16,8 +16,9 @@ extern "C"
 #include <iostream>
 
 #include <memory>
-
 #include <boost/filesystem.hpp>
+#include <boost/filesystem/directory.hpp>
+
 #include <boost/lexical_cast.hpp>
 #include <regex>
 
@@ -43,6 +44,8 @@ private:
 
     std::shared_ptr <PGconn> GetConnection(DBType db_type);
 
+    std::string _users_storage_path;
+
     void GetFilesDBInfo();
 
     void GetUsersDBInfo();
@@ -53,6 +56,10 @@ public:
     ~DatabaseWrapper() = default;
 
     void SetUserID(int userID);
+
+    void SetUsersStoragePath(const std::string &path);
+
+    std::string GetUsersStoragePath();
 
     int CheckUserID(const std::string &login, const std::string &password);
 
@@ -69,6 +76,8 @@ public:
     int AddFileRecord(const std::string &file_name, const std::string &dir_name, const std::string &hash_sum);
 
     void DeleteFileRecord(int fileID);
+
+    void DeleteAllFiles();
 
     std::map <std::string, std::string> GetFileList(std::string const& dir_name);
 };
