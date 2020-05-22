@@ -44,13 +44,12 @@ bool FilesDatabaseManager::UploadFile(const string &file_name, const string &dir
         int file_ID = _databaseConnection.AddFileRecord(file_name, dir_name, hash_sum);
 
         //////для проверки тестов
-        boost::filesystem::ofstream( _path_users_storage + _userDirectory + to_string(file_ID));
+       // boost::filesystem::ofstream( _path_users_storage + _userDirectory + to_string(file_ID));
 
         /////раскоментировать при соединении программы с свервером
-       /* fs::path path_to_file(_path_users_storage + file_name);
+        fs::path path_to_file(_path_users_storage + file_name);
         fs::path new_path(_path_users_storage + _userDirectory + to_string(file_ID));
         rename(path_to_file, new_path);
-*/
         return true;
     }
     catch(exception &exc)
