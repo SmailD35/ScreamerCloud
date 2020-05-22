@@ -21,11 +21,12 @@ void ClientApp::ParseCmdArguments(int argc, char** argv)
 	po::options_description desc("Allowed options");
 	desc.add_options()
 		("help,h", "produce help message")
-		("upload", po::value<std::string>(), "upload file")
-		("download", po::value<std::string>(), "download file")
+		("upload,u", po::value<vector<std::string>>()->multitoken(), "upload file")
+		("download,d", po::value<vector<std::string>>()->multitoken(), "download file")
 		("delete", po::value<std::string>(), "delete file from cloud storage")
 		("list,l", po::value<std::string>()->default_value(string("/")), "list files in 'arg' directory")
-		("register", "register new user");
+		("register", "register new user")
+		("login", "authorize");
 
 	po::variables_map vm;
 	po::store(po::parse_command_line(argc, argv, desc), vm);
@@ -38,13 +39,15 @@ void ClientApp::ParseCmdArguments(int argc, char** argv)
 
 	if (vm.count("upload")) {
 		_clientRequest["cmd_code"] = to_string(UPLOAD_CLI);
-		_clientRequest["file_name"] = vm["upload"].as<std::string>();
+		_clientRequest["file_name"] = vm["upload"].as<vector<std::string>>()[0];
+		_clientRequest["upload_directory"] = vm["upload"].as<vector<std::string>>()[1];
 		return;
 	}
 
 	if (vm.count("download")) {
 		_clientRequest["cmd_code"] = to_string(DOWNLOAD_CLI);
-		_clientRequest["file_name"] = vm["download"].as<std::string>();
+		_clientRequest["file_name"] = vm["download"].as<vector<std::string>>()[0];
+		_clientRequest["download_directory"] = vm["download"].as<vector<std::string>>()[1];
 		return;
 	}
 
@@ -64,11 +67,16 @@ void ClientApp::ParseCmdArguments(int argc, char** argv)
 		_clientRequest["cmd_code"] = to_string(REGISTER_CLI);
 		return;
 	}
+
+	if (vm.count("login")) {
+		_clientRequest["cmd_code"] = to_string(LOGIN_CLI);
+		return;
+	}
 }
 
 int ClientApp::ExecuteRequest()
 {
-	if (!_clientRequest.count("cmd_code")) return 0;
+	if (!_clientRequest.count("cmd_code")) return -3;
 
 	switch (stoi(_clientRequest["cmd_code"]))
 	{
@@ -82,6 +90,8 @@ int ClientApp::ExecuteRequest()
 		return List();
 	case REGISTER_CLI:
 		return RegisterUser();
+	case LOGIN_CLI:
+		return LoginUser();
 	default:
 		return -2;
 	}
@@ -89,24 +99,30 @@ int ClientApp::ExecuteRequest()
 
 int ClientApp::UploadFile()
 {
-	// TODO: добавить поток с прогрессбаром
 	Request();
 	if (ValidateResponse())
 	{
+		cout << "Uploading file...\n";
+		thread progressBar(&ClientApp::PrintProgress, this, consoleWidth);
 		_clientNetwork->SendFile(_file);
+		progressBar.join();
 		return 0;
 	}
-	else
 		return -1;
 }
 
 int ClientApp::DownloadFile()
 {
-	// TODO: добавить поток с прогрессбаром
 	Request();
 	if (ValidateResponse())
+	{
+		cout << "Downloading file...\n";
+		thread progressBar(&ClientApp::PrintProgress, this, consoleWidth);
 		_clientNetwork->RecvFile(&_file);
-	return 0;
+		progressBar.join();
+		return 0;
+	}
+	return -1;
 }
 
 int ClientApp::DeleteFile()
@@ -157,6 +173,32 @@ int ClientApp::RegisterUser()
 	}
 }
 
+int ClientApp::LoginUser()
+{
+	string username;
+	string password;
+	cout << "Enter username: ";
+	cin >> username;
+	cout << endl << "Enter password: ";
+	cin >> password;
+	cout << endl;
+
+	_clientRequest["username"] = username;
+	_clientRequest["password"] = password;
+
+	Request();
+	if (!ValidateResponse())
+	{
+		cout << "Login success\n";
+		return 0;
+	}
+	else
+	{
+		cout << "Login failed\n";
+		return -1;
+	}
+}
+
 void ClientApp::Request()
 {
 	_clientNetwork->SendMsg(_clientRequest);
@@ -175,4 +217,18 @@ bool ClientApp::ValidateResponse()
 		return true;
 
 	return false;
+}
+
+void ClientApp::PrintProgress(int outputWidth)
+{
+	int progress = 0;
+	while (_file.GetProgress() < 100)
+	{
+		progress = (float(_file.GetProgress()) / 100) * outputWidth;
+		cout << string(outputWidth + 5, '\b');
+		cout << string(progress, '#') << string(outputWidth - progress, '_') << ' ' << _file.GetProgress() << '%';
+		cout.flush();
+		this_thread::sleep_for(chrono::milliseconds(500));
+	}
+	cout << endl;
 }

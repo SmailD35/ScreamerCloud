@@ -6,6 +6,8 @@
 #define CLIENT_CONSOLE_APP__CLIENT_APP_H_
 
 #include <map>
+#include <thread>
+#include <chrono>
 #include <boost/program_options.hpp>
 #include "file.h"
 #include "client_network_mock.h"
@@ -13,6 +15,8 @@
 namespace po = boost::program_options;
 
 enum CmdCodeClient { UPLOAD_CLI, DOWNLOAD_CLI, DELETE_CLI, LIST_CLI, REGISTER_CLI, LOGIN_CLI };
+
+const int consoleWidth = 50;
 
 struct User
 {
@@ -34,8 +38,10 @@ class ClientApp
 	int DeleteFile();
 	int List();
 	int RegisterUser();
+	int LoginUser();
 	void Request();
 	bool ValidateResponse();
+	void PrintProgress(int outputWidth);
 
  private:
 	std::string _currentDirectory;
