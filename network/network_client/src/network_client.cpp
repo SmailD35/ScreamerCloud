@@ -12,9 +12,9 @@ ClientNetwork::ClientNetwork(const string& IP, int port)
 	_socket->connect(ep);
 };
 
-void ClientNetwork::Send(int buf_size)
+std::size_t ClientNetwork::Send(int buf_size)
 {
-	boost::asio::write(*_socket, boost::asio::buffer(buf_send));
+	return boost::asio::write(*_socket, boost::asio::buffer(buf_send));
 };
 
 void ClientNetwork::Recv()
@@ -59,11 +59,19 @@ map<string, string> * ClientNetwork::RecvMsg()
 }
 
 ClientNetwork::~ClientNetwork()
-= default;;
+= default;
 
 void ClientNetwork::SendFile(File &file_obj)
 {
+	int file_size = file_obj.GetSize();
+	int send_bytes = 0;
+	//int loop_count = file_size / 1024 + 1;
 
+	for (int i = 0; send_bytes < file_size; ++i)
+	{
+
+		send_bytes += Send(1024);
+	}
 };
 
 void ClientNetwork::RecvFile(File &file_obj_ptr)

@@ -33,14 +33,12 @@ protected:
 	std::string buf_recv;
 
 private:
-//	void Send(int buf_size);
-//	void Recv();
 	int Serialize(std::map<std::string, std::string> &client_query);
 	std::map<std::string, std::string> * Deserialize(int buf_size);
+	size_t Send(int buf_size);
+	void Recv();
 
 public:
-	void Send(int buf_size);
-	void Recv();
 	ClientNetwork(const std::string& IP, int port);
 	~ClientNetwork();
 	void SendMsg(std::map<std::string, std::string> &client_query);

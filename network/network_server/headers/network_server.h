@@ -26,16 +26,15 @@ protected:
 	std::string _buf_recv;
 
 private:
-//	void Send(int buf_size);
-//	std::size_t Recv();
 	int Serialize(std::map<std::string, std::string> &server_answer);
 	std::map<std::string, std::string> * Deserialize(int buf_size);
+	void Send(int buf_size);
+	std::size_t Recv();
 	//boost::shared_pointer<boost::asio::ip::tcp::socket>
 	boost::asio::ip::tcp::socket * socket;
 
 public:
-	void Send(int buf_size);
-	std::size_t Recv();
+
 	ConnectionNetwork(boost::asio::ip::tcp::socket *sock);
 	~ConnectionNetwork();
 	void SendMsg(std::map<std::string, std::string> &client_query);
