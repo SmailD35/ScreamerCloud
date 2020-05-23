@@ -6,10 +6,10 @@ enable_testing()
 add_subdirectory(tests)
 
 find_package( Boost REQUIRED COMPONENTS program_options )
+include_directories(inc tests/inc ../network/network_client/headers ../utills ${Boost_INCLUDE_DIRS})
+link_directories(../network/cmake-build-debug ../utills/cmake-build-debug)
 
-#add_library(screamer_utils SHARED )
+add_executable(client_console_app main.cpp src/client_app.cpp inc/client_app.h)
+target_link_libraries(client_console_app  network_client screamer_utills ${Boost_LIBRARIES} gmock_main)
 
-include_directories(inc tests/inc ${Boost_INCLUDE_DIRS})
-add_executable(client_console_app main.cpp src/client_app.cpp inc/client_app.h inc/file.h src/file.cpp)
-target_link_libraries(client_console_app gmock_main ${Boost_LIBRARIES})
 add_test(NAME client_console_app_test COMMAND test)
