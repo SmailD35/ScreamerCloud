@@ -6,47 +6,20 @@
 
 using namespace std;
 
-File::File()
-= default;
-
-File::~File()
-= default;
-
 string File::GetHash()
 {
 	return string(4,'0');
 }
 
-int File::GetSize()
-{
-	return 0;
-}
-
-FILE* File::GetFile()
-{
-	return nullptr;
-}
-
-string File::GetPath()
-{
-	return move(_path);
-}
-
-char* File::GetNextChunk()
-{
-	_chunksReaded++;
-	return nullptr;
-}
-
 void File::ResetChunks()
 {
-
+	_chunksCurrent = 0;
 }
 
 int File::GetProgress()
 {
 	if (_chunksCount == 0) return 0;
-	return int(float(_chunksReaded) / float(_chunksCount) * 100);
+	return int(float(_chunksCurrent) / float(_chunksCount) * 100);
 }
 
 int File::CalculateHash()
@@ -54,7 +27,42 @@ int File::CalculateHash()
 	return 0;
 }
 
-int File::CalculateSize()
+OutFile::OutFile(int size, std::string filePath, int chunkSize)
 {
-	return 0;
+	_size = size;
+	_path = std::move(filePath);
+	_chunkSize = chunkSize;
+	_file.open(_path,  std::ofstream::out | std::ofstream::app);
+}
+
+OutFile::~OutFile()
+{
+	_file.close();
+}
+
+void OutFile::SetNextChunk(string buf)
+{
+	_file << buf;
+	_chunksCurrent++;
+}
+
+InFile::InFile(int size, std::string filePath, int chunkSize)
+{
+	_size = size;
+	_path = std::move(filePath);
+	_chunkSize = chunkSize;
+	_file.open(_path,  std::ifstream::in);
+}
+
+InFile::~InFile()
+{
+	_file.close();
+}
+
+string InFile::GetNextChunk()
+{
+	string buf;
+	_file >> buf;
+	_chunksCurrent++;
+	return std::move(buf);
 }
