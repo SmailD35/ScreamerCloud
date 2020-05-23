@@ -27,11 +27,17 @@ int File::CalculateHash()
 	return 0;
 }
 
+int File::GetSize()
+{
+	return _size;
+}
+
 OutFile::OutFile(int size, std::string filePath, int chunkSize)
 {
 	_size = size;
 	_path = std::move(filePath);
 	_chunkSize = chunkSize;
+	_chunksCount = ceil(_size / chunkSize);
 	_file.open(_path,  std::ofstream::out | std::ofstream::app);
 }
 
@@ -42,6 +48,7 @@ OutFile::~OutFile()
 
 void OutFile::SetNextChunk(string buf)
 {
+	if (_chunksCurrent >= _chunksCount) return;
 	_file << buf;
 	_chunksCurrent++;
 }
@@ -51,6 +58,7 @@ InFile::InFile(int size, std::string filePath, int chunkSize)
 	_size = size;
 	_path = std::move(filePath);
 	_chunkSize = chunkSize;
+	_chunksCount = ceil(_size / chunkSize);
 	_file.open(_path,  std::ifstream::in);
 }
 
@@ -61,6 +69,7 @@ InFile::~InFile()
 
 string InFile::GetNextChunk()
 {
+	if (_chunksCurrent >= _chunksCount) return "";
 	string buf;
 	_file >> buf;
 	_chunksCurrent++;
