@@ -28,7 +28,7 @@ protected:
 private:
 	int Serialize(std::map<std::string, std::string> &server_answer);
 	std::map<std::string, std::string> * Deserialize(int buf_size);
-	void Send(int buf_size);
+	std::size_t Send(int buf_size);
 	std::size_t Recv();
 	//boost::shared_pointer<boost::asio::ip::tcp::socket>
 	boost::asio::ip::tcp::socket * socket;
@@ -39,8 +39,8 @@ public:
 	~ConnectionNetwork();
 	void SendMsg(std::map<std::string, std::string> &client_query);
 	std::map<std::string, std::string> * RecvMsg();
-	void SendFile(File &file_obj);
-	void RecvFile(File &file_obj_ptr);
+	int SendFile(InFile &file_obj);
+	int RecvFile(OutFile &file_obj);
 };
 
 

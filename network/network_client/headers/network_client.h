@@ -36,15 +36,15 @@ private:
 	int Serialize(std::map<std::string, std::string> &client_query);
 	std::map<std::string, std::string> * Deserialize(int buf_size);
 	size_t Send(int buf_size);
-	void Recv();
+	size_t Recv();
 
 public:
 	ClientNetwork(const std::string& IP, int port);
 	~ClientNetwork();
 	void SendMsg(std::map<std::string, std::string> &client_query);
 	std::map<std::string, std::string> * RecvMsg();
-	void SendFile(File &file_obj);
-	void RecvFile(File &file_obj_ptr);
+	int SendFile(InFile &file_obj);
+	int RecvFile(OutFile &file_obj);
 };
 
 

@@ -17,11 +17,21 @@ std::size_t ClientNetwork::Send(int buf_size)
 	return boost::asio::write(*_socket, boost::asio::buffer(buf_send));
 };
 
-void ClientNetwork::Recv()
+std::size_t ClientNetwork::Recv()
 {
 	boost::asio::streambuf buf;
-	std::size_t read_size = boost::asio::read( *_socket, buf);
+	std::size_t read_size;
+	try
+	{
+		read_size = boost::asio::read(*_socket, buf);
+	}
+	catch(std::exception& e)
+	{
+		cout << e.what() << endl;
+	}
 	buf_recv = boost::asio::buffer_cast<const char*>(buf.data());
+	//cout << buf_recv << endl;
+	return read_size;
 };
 
 int ClientNetwork::Serialize(map<string, string> &client_query)
@@ -61,7 +71,7 @@ map<string, string> * ClientNetwork::RecvMsg()
 ClientNetwork::~ClientNetwork()
 = default;
 
-void ClientNetwork::SendFile(File &file_obj)
+int ClientNetwork::SendFile(InFile &file_obj)
 {
 	int file_size = file_obj.GetSize();
 	int send_bytes = 0;
@@ -69,14 +79,25 @@ void ClientNetwork::SendFile(File &file_obj)
 
 	for (int i = 0; send_bytes < file_size; ++i)
 	{
-
+		buf_send.clear();
+		buf_send = file_obj.GetNextChunk();
 		send_bytes += Send(1024);
 	}
+	return 0;
 };
 
-void ClientNetwork::RecvFile(File &file_obj_ptr)
+int ClientNetwork::RecvFile(OutFile &file_obj)
 {
+	int file_size = file_obj.GetSize();
+	int recv_bytes = 0;
 
+	for (int i = 0; recv_bytes < file_size; ++i)
+	{
+		buf_send.clear();
+		recv_bytes += Recv();
+		file_obj.SetNextChunk(buf_recv);
+	}
+	return 0;
 };
 
 char * ClientNetworkTest::GetBuf(int choice) {};

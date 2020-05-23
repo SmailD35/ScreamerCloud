@@ -49,12 +49,12 @@ ConnectionNetwork::ConnectionNetwork(io::ip::tcp::socket *sock)
 	socket = std::move(sock);
 };
 
-void ConnectionNetwork::Send(int buf_size)
+size_t ConnectionNetwork::Send(int buf_size)
 {
-	boost::asio::write(*socket, boost::asio::buffer(_buf_send));
+	return boost::asio::write(*socket, boost::asio::buffer(_buf_send));
 };
 
-std::size_t ConnectionNetwork::Recv()
+size_t ConnectionNetwork::Recv()
 {
 	boost::asio::streambuf buf;
 	std::size_t read_size;
@@ -105,14 +105,33 @@ map<string, string> * ConnectionNetwork::RecvMsg()
 	return server_answer;
 };
 
-void ConnectionNetwork::SendFile(File &file_obj)
+int ConnectionNetwork::SendFile(InFile &file_obj)
 {
+	int file_size = file_obj.GetSize();
+	int send_bytes = 0;
+	//int loop_count = file_size / 1024 + 1;
 
+	for (int i = 0; send_bytes < file_size; ++i)
+	{
+		_buf_send.clear();
+		_buf_send = file_obj.GetNextChunk();
+		send_bytes += Send(1024);
+	}
+	return 0;
 };
 
-void ConnectionNetwork::RecvFile(File &file_obj_ptr)
+int ConnectionNetwork::RecvFile(OutFile &file_obj)
 {
+	int file_size = file_obj.GetSize();
+	int recv_bytes = 0;
 
+	for (int i = 0; recv_bytes < file_size; ++i)
+	{
+		_buf_send.clear();
+		recv_bytes += Recv();
+		file_obj.SetNextChunk(_buf_recv);
+	}
+	return 0;
 };
 
 ConnectionNetwork::~ConnectionNetwork()
