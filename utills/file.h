@@ -1,37 +1,47 @@
 #ifndef UTILLS_LIBRARY_H
 #define UTILLS_LIBRARY_H
 
-#include <cstdio>
 #include <string>
+#include <fstream>
 
 class File
 {
  public:
-	File();
-	File(FILE* file, int size, std::string filePath) :
-		_file(file), _size(size), _path(std::move(filePath)), _chunkSize(1024) {};
-	File(FILE* file, int size, std::string filePath, int chunkSize) :
-		_file(file), _size(size), _path(std::move(filePath)), _chunkSize(chunkSize) {};
-	~File();
+	virtual ~File() = default;;
 	std::string GetHash();
-	int GetSize();
-	FILE* GetFile();
-	std::string GetPath();
-	char* GetNextChunk();
 	void ResetChunks();
 	int GetProgress();
- private:
 	int CalculateHash();
-	int CalculateSize();
 
- private:
+ protected:
 	std::string _hashSum;
 	int _chunkSize = 1;
 	int _size = 0;
-	int _chunksReaded = 0;
+	int _chunksCurrent = 0;
 	int _chunksCount = 0;
 	std::string _path;
-	FILE* _file = nullptr;
+};
+
+class OutFile : public File
+{
+ public:
+	OutFile(int size, std::string filePath, int chunkSize = 1024);
+	~OutFile() override;
+	void SetNextChunk(std::string buf);
+
+ private:
+	std::ofstream _file;
+};
+
+class InFile : public File
+{
+ public:
+	InFile(int size, std::string filePath, int chunkSize = 1024);
+	~InFile() override;
+	std::string GetNextChunk();
+
+ private:
+	std::ifstream _file;
 };
 
 #endif //UTILLS_LIBRARY_H
