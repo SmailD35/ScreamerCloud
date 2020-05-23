@@ -25,5 +25,17 @@ add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/googletest-src
         EXCLUDE_FROM_ALL)
 
 include_directories(BEFORE ${GTEST_INCLUDE_DIRS})
-add_executable(db_app_test ../src/database_wrapper.cpp ../src/users_database_manager.cpp ../src/files_database_manager.cpp ../src/database_manager.cpp ../inc/database_manager.h test.cpp )
-target_link_libraries(db_app_test gtest_main gmock_main pq ${Boost_LIBRARIES})
+include_directories(../inc)
+link_directories(../cmake-build-debug)
+
+add_executable(db_app_test test.cpp)
+
+if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+    target_link_libraries(db_app_test gtest_main gmock_main pq ${Boost_LIBRARIES} libdb_app.dylib)
+endif()
+
+if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+    target_link_libraries(db_app_test gtest_main gmock_main libdb_app.so)
+endif()
+#add_executable(db_app_test ../src/database_wrapper.cpp ../src/users_database_manager.cpp ../src/files_database_manager.cpp ../src/database_manager.cpp ../inc/database_manager.h test.cpp )
+#target_link_libraries(db_app_test gtest_main gmock_main pq ${Boost_LIBRARIES})
