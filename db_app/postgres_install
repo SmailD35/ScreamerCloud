@@ -27,3 +27,17 @@ https://info-comp.ru/sisadminst/598-install-postgresql-10-on-ubuntu-server.html
 (вместо закоментированного localhost)
 еще установка libpq!!!!
 sudo apt-get install libpq-dev
+
+
+- users_db
+table = users_data
+| ID_user (integer unique) | login (varchar(80)) | password (varchar(80))|
+
+create table users_data (id_user integer unique, login varchar(80), password varchar(80));
+
+
+- files_db
+table = files_data
+|ID_user (integer) | user_path (varchar(80)) | file_name (varchar(80)) | hash (integer) | ID_file (integer unique) |
+
+create table files_data (ID_user integer, user_path varchar(80), file_name varchar(80), hash integer, ID_file integer unique);

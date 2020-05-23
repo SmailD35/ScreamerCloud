@@ -8,8 +8,6 @@
 #include "../inc/database_manager.h"
 #include "gtest/gtest.h"
 
-#include "../inc/users_database_manager.h"
-
 using namespace std;
 
 #define SUCCESS 0
