@@ -61,15 +61,15 @@ map<string, string> * ClientNetwork::RecvMsg()
 ClientNetwork::~ClientNetwork()
 = default;;
 
-//void ClientNetwork::SendFile(File &file_obj)
-//{
-//
-//};
-//
-//void ClientNetwork::RecvFile(File &file_obj_ptr)
-//{
-//
-//};
+void ClientNetwork::SendFile(File &file_obj)
+{
+
+};
+
+void ClientNetwork::RecvFile(File &file_obj_ptr)
+{
+
+};
 
 char * ClientNetworkTest::GetBuf(int choice) {};
 

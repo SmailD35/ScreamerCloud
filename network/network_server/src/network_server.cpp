@@ -105,15 +105,15 @@ map<string, string> * ConnectionNetwork::RecvMsg()
 	return server_answer;
 };
 
-//void ConnectionNetwork::SendFile(File &file_obj)
-//{
-//
-//};
+void ConnectionNetwork::SendFile(File &file_obj)
+{
 
-//void ConnectionNetwork::RecvFile(File &file_obj_ptr)
-//{
-//
-//};
+};
+
+void ConnectionNetwork::RecvFile(File &file_obj_ptr)
+{
+
+};
 
 ConnectionNetwork::~ConnectionNetwork()
 {

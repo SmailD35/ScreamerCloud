@@ -8,6 +8,7 @@
 #include <boost/serialization/map.hpp>
 #include <boost/archive/text_iarchive.hpp>
 #include <boost/archive/text_oarchive.hpp>
+#include "file.h"
 //#include "../../tests/headers/test_network_client.h"
 
 enum CmdCodeClient {HELP_CLI,
@@ -39,8 +40,8 @@ public:
 	~ConnectionNetwork();
 	void SendMsg(std::map<std::string, std::string> &client_query);
 	std::map<std::string, std::string> * RecvMsg();
-	//void SendFile(File &file_obj);
-	//void RecvFile(File &file_obj_ptr);
+	void SendFile(File &file_obj);
+	void RecvFile(File &file_obj_ptr);
 };
 
 
