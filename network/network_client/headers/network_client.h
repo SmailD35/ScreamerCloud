@@ -3,7 +3,12 @@
 
 #include <string>
 #include <vector>
-#include "../../tests/headers/test_network_client.h"
+#include <iostream>
+#include "boost/asio.hpp"
+#include <boost/serialization/map.hpp>
+#include <boost/archive/text_iarchive.hpp>
+#include <boost/archive/text_oarchive.hpp>
+//#include "../../tests/headers/test_network_client.h"
 
 enum CmdCodeClient {HELP_CLI,
 	UPLOAD_CLI,
@@ -17,27 +22,30 @@ enum CmdCodeClient {HELP_CLI,
 class ClientNetwork
 {
 private:
-	//ip::tcp::socket _socket;
+	boost::asio::io_service _io_service;
+	boost::asio::ip::tcp::socket * _socket;
 	int _port;
 	std::string _IP;
 
 protected:
-	char * buf_send;
-	char * buf_recv;
+	std::string buf_send;
+	std::string buf_recv;
 
 private:
-	void Send(int buf_size);
-	void Recv(int buf_size);
-	int Serialize(map<string, string> &client_query);
-	map<string, string> Deserialize(int buf_size);
+//	void Send(int buf_size);
+//	void Recv();
+	int Serialize(std::map<std::string, std::string> &client_query);
+	std::map<std::string, std::string> * Deserialize(int buf_size);
 
 public:
-	ClientNetwork();
+	void Send(int buf_size);
+	void Recv();
+	ClientNetwork(const std::string& IP, int port);
 	~ClientNetwork();
-	void SendMsg(map<string, string> &client_query);
-	map<string, string> RecvMsg();
-	void SendFile(File &file_obj);
-	void RecvFile(File &file_obj_ptr);
+	void SendMsg(std::map<std::string, std::string> &client_query);
+	std::map<std::string, std::string> * RecvMsg();
+	//void SendFile(File &file_obj);
+	//void RecvFile(File &file_obj_ptr);
 };
 
 

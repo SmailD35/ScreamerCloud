@@ -7,6 +7,8 @@ add_subdirectory(tests)
 
 find_package( Boost REQUIRED COMPONENTS program_options )
 
+#add_library(screamer_utils SHARED )
+
 include_directories(inc tests/inc ${Boost_INCLUDE_DIRS})
 add_executable(client_console_app main.cpp src/client_app.cpp inc/client_app.h inc/file.h src/file.cpp)
 target_link_libraries(client_console_app gmock_main ${Boost_LIBRARIES})
