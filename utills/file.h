@@ -3,6 +3,7 @@
 
 #include <string>
 #include <fstream>
+#include <cmath>
 
 class File
 {
@@ -12,6 +13,7 @@ class File
 	void ResetChunks();
 	int GetProgress();
 	int CalculateHash();
+	int GetSize();
 
  protected:
 	std::string _hashSum;
