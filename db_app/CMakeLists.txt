@@ -4,17 +4,11 @@ project(db_app CXX)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_FLAGS -I/usr/include/postgresql)
 
-<<<<<<< HEAD
 #SET(Boost_USE_STATIC_LIBS ON)
 find_package( Boost REQUIRED COMPONENTS filesystem log log_setup)
 include_directories(inc ${Boost_INCLUDE_DIRS})
 link_directories(/usr/lib/x86_64-linux-gnu/)
 add_definitions(-DBOOST_LOG_DYN_LINK)
-=======
-find_package( Boost REQUIRED COMPONENTS filesystem )
-include_directories(inc ${Boost_INCLUDE_DIRS})
-#link_directories(/usr/lib/x86_64-linux-gnu/boost)
->>>>>>> 7c4beca6dcc969c4788fad66a3a871efe0b85882
 
 enable_testing()
 add_subdirectory(test)
