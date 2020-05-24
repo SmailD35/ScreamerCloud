@@ -1,14 +1,16 @@
 #include "commands.h"
 
+using namespace std;
+
 UserSession::~UserSession()
 {
 
 }
 
-Command::Command()
-{
-
-}
+//Command::Command()
+//{
+//
+//}
 
 void Invoker::Do()
 {
@@ -33,6 +35,32 @@ void RegisterUserCommand::Do()
 }
 
 void RegisterUserCommand::Undo()
+{
+
+}
+
+void LoginUserCommand::Do()
+{
+//	DatabaseManager dbManager = _userSession._databaseManager;
+//	ConnectionNetwork network = _userSession._userConnection;
+//	map<string,string> query = _userSession._userQuery;
+//
+//	int errorCode = dbManager.Register(query["username"], query["password"]);
+//	query["error_code"] = to_string(errorCode);
+//
+//	network.SendMsg(query);
+	ConnectionNetwork network = _userSession._userConnection;
+	map<string,string> query = _userSession._userQuery;
+
+	if (query["username"] == "sasha" && query["password"] == "1234" )
+		query["error_code"] = "0";
+	else
+		query["error_code"] = "1";
+
+	network.SendMsg(query);
+}
+
+void LoginUserCommand::Undo()
 {
 
 }
@@ -80,7 +108,7 @@ void SendFileListCommand::Do()
 	ConnectionNetwork network = _userSession._userConnection;
 	map<string,string> query = _userSession._userQuery;
 
-	vector<string> list = dbManager.GetFileList(query["directory"]);
+	map<string,string> list = dbManager.GetFileList(query["directory"]);
 	//TODO: перезапись из вектора в map, или переделать функцию чтобы возвращала map
 	network.SendMsg(query);
 }

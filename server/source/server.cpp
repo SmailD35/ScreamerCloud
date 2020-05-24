@@ -3,7 +3,15 @@
 //
 
 #include "server.h"
+#include "cmd_codes.h"
 
+using namespace std;
+
+Server::Server(string ip, int port)
+{
+	_network = new ServerNetwork(ip, port);
+}
+;
 void Server::ConnectionsLoop()
 {
 	while (true)
@@ -22,9 +30,9 @@ void Server::QueriesLoop()
 			ConnectionNetwork connection = _connections.front();
 			_connections.pop();
 
-			map<string,string> message = connection.RecvMsg();
+			map<string,string>* message = connection.RecvMsg();
 			UserSession userSession(connection);
-			userSession._userQuery = message;
+			userSession._userQuery = move(*message);
 			Command* newCommand = CreateCommand(userSession);
 			_queries.push(newCommand);
 		}
@@ -39,24 +47,28 @@ Command* Server::CreateCommand(UserSession userSession)
 	if (query.count("error_code") && (query["error_code"] == "0"))
 		switch (stoi(query["cmd_code"]))
 		{
-		case UPLOAD_CLI:
+		case UPLOAD:
 			newCommand = new SendFileCommand(userSession);
 			break;
 
-		case DOWNLOAD_CLI:
+		case DOWNLOAD:
 			newCommand = new RecvFileCommand(userSession);
 			break;
 
-		case DELETE_CLI:
+		case DELETE:
 			newCommand = new DeleteCommand(userSession);
 			break;
 
-		case LIST_CLI:
+		case LIST:
 			newCommand = new SendFileListCommand(userSession);
 			break;
 
-		case REGISTER_CLI:
+		case REGISTER:
 			newCommand = new RegisterUserCommand(userSession);
+			break;
+
+		case LOGIN:
+			newCommand = new LoginUserCommand(userSession);
 			break;
 		}
 

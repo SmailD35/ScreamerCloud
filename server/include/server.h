@@ -8,20 +8,23 @@
 #include <queue>
 #include "commands.h"
 #include "network_server.h"
+#include "file.h"
 
 class Server
 {
-private:
-	ServerNetwork _network;
-	queue<ConnectionNetwork> _connections;
-	queue<Command*> _queries;
-	Command* CreateCommand(UserSession userSession);
-
 public:
-
+	Server(std::string ip, int port);
 	void ConnectionsLoop();
 	void QueriesLoop();
 	void WorkerLoop();
+
+private:
+	std::queue<ConnectionNetwork> _connections;
+	std::queue<Command*> _queries;
+	Command* CreateCommand(UserSession userSession);
+
+private:
+	ServerNetwork* _network;
 };
 
 #endif //SERVER_SERVER_H
