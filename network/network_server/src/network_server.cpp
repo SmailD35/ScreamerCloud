@@ -60,7 +60,7 @@ size_t ConnectionNetwork::Recv()
 	std::size_t read_size;
 	try
 	{
-		read_size = boost::asio::read(*socket, buf);
+		read_size = boost::asio::read_until(*socket, buf, "\0");
 	}
 	catch(std::exception& e)
 	{
