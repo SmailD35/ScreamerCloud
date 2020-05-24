@@ -3,6 +3,7 @@
 //
 
 #include "client_app.h"
+#include "cmd_codes.h"
 
 using namespace std;
 
@@ -24,7 +25,7 @@ void ClientApp::ParseCmdArguments(int argc, char** argv)
 		("upload,u", po::value<vector<std::string>>()->multitoken(), "upload file")
 		("download,d", po::value<vector<std::string>>()->multitoken(), "download file")
 		("delete", po::value<std::string>(), "delete file from cloud storage")
-		("list,l", po::value<std::string>()->default_value(string("/")), "list files in 'arg' directory")
+		//("list,l", po::value<std::string>()->default_value(string("/")), "list files in 'arg' directory")
 		("register", "register new user")
 		("login", "authorize");
 
@@ -38,38 +39,38 @@ void ClientApp::ParseCmdArguments(int argc, char** argv)
 	}
 
 	if (vm.count("upload")) {
-		_clientRequest["cmd_code"] = to_string(UPLOAD_CLI);
+		_clientRequest["cmd_code"] = to_string(UPLOAD);
 		_clientRequest["file_name"] = vm["upload"].as<vector<std::string>>()[0];
 		_clientRequest["upload_directory"] = vm["upload"].as<vector<std::string>>()[1];
 		return;
 	}
 
 	if (vm.count("download")) {
-		_clientRequest["cmd_code"] = to_string(DOWNLOAD_CLI);
+		_clientRequest["cmd_code"] = to_string(DOWNLOAD);
 		_clientRequest["file_name"] = vm["download"].as<vector<std::string>>()[0];
 		_clientRequest["download_directory"] = vm["download"].as<vector<std::string>>()[1];
 		return;
 	}
 
 	if (vm.count("delete")) {
-		_clientRequest["cmd_code"] = to_string(DELETE_CLI);
+		_clientRequest["cmd_code"] = to_string(DELETE);
 		_clientRequest["file_name"] = vm["delete"].as<std::string>();
 		return;
 	}
 
 	if (vm.count("list")) {
-		_clientRequest["cmd_code"] = to_string(LIST_CLI);
+		_clientRequest["cmd_code"] = to_string(LIST);
 		_clientRequest["path"] = vm["list"].as<std::string>();
 		return;
 	}
 
 	if (vm.count("register")) {
-		_clientRequest["cmd_code"] = to_string(REGISTER_CLI);
+		_clientRequest["cmd_code"] = to_string(REGISTER);
 		return;
 	}
 
 	if (vm.count("login")) {
-		_clientRequest["cmd_code"] = to_string(LOGIN_CLI);
+		_clientRequest["cmd_code"] = to_string(LOGIN);
 		return;
 	}
 }
@@ -187,6 +188,7 @@ int ClientApp::LoginUser()
 
 	_clientRequest["username"] = username;
 	_clientRequest["password"] = password;
+	_clientRequest["error_code"] = "0";
 
 	Request();
 	if (!ValidateResponse())
