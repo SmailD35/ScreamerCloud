@@ -9,7 +9,7 @@ using namespace std;
 
 ClientApp::ClientApp()
 {
-	_clientNetwork = new ClientNetwork("127.0.0.1", 34356);
+	_clientNetwork = new ClientNetwork("127.0.0.1", 23545);
 }
 
 ClientApp::~ClientApp()
@@ -81,17 +81,17 @@ int ClientApp::ExecuteRequest()
 
 	switch (stoi(_clientRequest["cmd_code"]))
 	{
-	case UPLOAD_CLI:
+	case UPLOAD:
 		return UploadFile();
-	case DOWNLOAD_CLI:
+	case DOWNLOAD:
 		return DownloadFile();
-	case DELETE_CLI:
+	case DELETE:
 		return DeleteFile();
-	case LIST_CLI:
+	case LIST:
 		return List();
-	case REGISTER_CLI:
+	case REGISTER:
 		return RegisterUser();
-	case LOGIN_CLI:
+	case LOGIN:
 		return LoginUser();
 	default:
 		return -2;
