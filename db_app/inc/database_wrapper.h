@@ -19,8 +19,12 @@ extern "C"
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/directory.hpp>
 
+#include <boost/property_tree/json_parser.hpp>
 #include <boost/lexical_cast.hpp>
+
 #include <regex>
+
+#include "logging.hpp"
 
 enum Msg{
     NIL = -2,

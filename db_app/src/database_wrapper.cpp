@@ -5,7 +5,8 @@
 #include "../inc/database_wrapper.h"
 using namespace std;
 using boost::lexical_cast;
-//namespace fs = boost::filesystem;
+namespace pt = boost::property_tree;
+namespace fs = boost::filesystem;
 
 DatabaseWrapper::DatabaseWrapper() {
     GetUsersDBInfo();
@@ -19,17 +20,17 @@ int DatabaseWrapper::CheckUserID(string const& login, string const& password) {
         connection = GetConnection(USERS_DB);
     }
     catch(std::exception &exc) {
-        std::cout << exc.what() << std::endl; //////вывести в лог
+        BOOST_LOG_TRIVIAL(fatal) << exc.what();
     }
 
     std::string query = "SELECT ID_user FROM users_data WHERE login = '" + login + "' AND password = '" + password + "'";
-    std::cout << "      " << query << std::endl;
+    BOOST_LOG_TRIVIAL(trace) << query;
 
     auto res_deleter = [](PGresult* r) { PQclear(r);};
     std::unique_ptr <PGresult, decltype(res_deleter)> query_result(PQexec(connection.get(), query.c_str()), res_deleter);
 
     if (PQresultStatus(query_result.get()) != PGRES_TUPLES_OK)
-        throw std::runtime_error(PQresultErrorMessage(query_result.get())); ////логи
+        throw std::runtime_error(PQresultErrorMessage(query_result.get()));
 
     //если не нашли нужной записи, возвращаем FAIL
     if (!PQntuples(query_result.get()))
@@ -50,17 +51,17 @@ bool DatabaseWrapper::CheckExistingLogin(const std::string &login) {
         connection = GetConnection(USERS_DB);
     }
     catch(std::exception &exc) {
-        std::cout << exc.what() << std::endl; //////вывести в лог
+        BOOST_LOG_TRIVIAL(fatal) << exc.what();
     }
 
     std::string query = "SELECT ID_user FROM users_data WHERE login = '" + login + "'";
-    std::cout <<  "      " << query << std::endl;
+    BOOST_LOG_TRIVIAL(trace) << query;
 
     auto res_deleter = [](PGresult* r) { PQclear(r);};
     std::unique_ptr <PGresult, decltype(res_deleter)> query_result(PQexec(connection.get(), query.c_str()), res_deleter);
 
     if (PQresultStatus(query_result.get()) != PGRES_TUPLES_OK)
-        throw std::runtime_error(PQresultErrorMessage(query_result.get())); ////логи
+        throw std::runtime_error(PQresultErrorMessage(query_result.get()));
 
     return PQntuples(query_result.get());
 }
@@ -73,14 +74,14 @@ int DatabaseWrapper::AddUserRecord(const string &login, const string &password){
     }
     catch(std::exception &exc)
     {
-        std::cout << exc.what() << std::endl; //////вывести в лог
+        BOOST_LOG_TRIVIAL(fatal) << exc.what();
     }
 
     int user_ID = std::hash<std::string>{}(login);
     std::string hash = std::to_string(user_ID);
 
     std::string query = "INSERT INTO users_data VALUES (" + hash + ", '"+ login + "', '" + password + "')";
-    std::cout <<  "      " << query << std::endl;
+    BOOST_LOG_TRIVIAL(trace) << query;
 
     auto res_deleter = [](PGresult* r) { PQclear(r);};
     std::unique_ptr <PGresult, decltype(res_deleter)> query_result(PQexec(connection.get(), query.c_str()), res_deleter);
@@ -98,17 +99,17 @@ int DatabaseWrapper::CheckFileID(const string &file_name, const string &dir_name
         connection = GetConnection(FILES_DB);
     }
     catch(std::exception &exc) {
-        std::cout << exc.what() << std::endl; //////вывести в лог
+        BOOST_LOG_TRIVIAL(fatal) << exc.what();
     }
 
     std::string query = "SELECT ID_file FROM files_data WHERE ID_user = " + std::to_string(_userID) +  " AND user_path = '" + dir_name + "' AND file_name = '" + file_name + "'";
-    std::cout <<  "      " <<  query << std::endl;
+    BOOST_LOG_TRIVIAL(trace) << query;
 
     auto res_deleter = [](PGresult* r) { PQclear(r);};
     std::unique_ptr <PGresult, decltype(res_deleter)> query_result(PQexec(connection.get(), query.c_str()), res_deleter);
 
     if (PQresultStatus(query_result.get()) != PGRES_TUPLES_OK)
-        throw std::runtime_error(PQresultErrorMessage(query_result.get())); ////логи
+        throw std::runtime_error(PQresultErrorMessage(query_result.get()));
 
     //если не нашли нужной записи, возвращаем FAIL
     if (!PQntuples(query_result.get()))
@@ -127,14 +128,14 @@ int DatabaseWrapper::AddFileRecord(const string &file_name, const string &dir_na
         connection = GetConnection(FILES_DB);
     }
     catch(std::exception &exc) {
-        std::cout << exc.what() << std::endl; //////вывести в лог
+        BOOST_LOG_TRIVIAL(fatal) << exc.what();
     }
 
     int file_ID = std::hash<std::string>{}(file_name + dir_name);
     std::string hash = std::to_string(file_ID);
 
     std::string query = "INSERT INTO files_data VALUES (" + std::to_string(_userID) + ", '" + dir_name + "' , '" + file_name + "', " + hash_sum + ", " + hash + ")";
-    std::cout <<  "      " << query << std::endl;
+    BOOST_LOG_TRIVIAL(trace) << query;
 
     auto res_deleter = [](PGresult* r) { PQclear(r);};
     std::unique_ptr <PGresult, decltype(res_deleter)> query_result(PQexec(connection.get(), query.c_str()), res_deleter);
@@ -151,15 +152,11 @@ map<string, string> DatabaseWrapper::GetFileList(const string &dir_name) {
         connection = GetConnection(FILES_DB);
     }
     catch(std::exception &exc) {
-        std::cout << exc.what() << std::endl; //////вывести в лог
+        BOOST_LOG_TRIVIAL(fatal) << exc.what();
     }
-    ////////////////////как мы на уровне клиента обрабатываем создание новой папки? Если она пустая, то как мы это обрабатываем на сервере?
 
-    /////////надо сделать проверку на существование у пользователя такой директории
-    ////////или же просто возвращаем пустую мапу, а сервер перед отправкой ответа пользователю проверяет ее на пустоту
-    ////////если мапа пустая, то такой директории нет
     std::string query = "SELECT user_path, file_name FROM files_data WHERE ID_user = " + std::to_string(_userID) +  " AND user_path LIKE '" + dir_name + "%'";
-    std::cout << "      " <<  query << std::endl;
+    BOOST_LOG_TRIVIAL(trace) << query;
 
     auto res_deleter = [](PGresult* r) { PQclear(r);};
     std::unique_ptr <PGresult, decltype(res_deleter)> query_result(PQexec(connection.get(), query.c_str()), res_deleter);
@@ -199,7 +196,6 @@ shared_ptr<PGconn> DatabaseWrapper::GetConnection(DBType db_type) {
 
     if (PQstatus(connection.get()) != CONNECTION_OK)
     {
-        /////запись в логи
         throw std::runtime_error(PQerrorMessage(connection.get()));
     }
 
@@ -207,12 +203,31 @@ shared_ptr<PGconn> DatabaseWrapper::GetConnection(DBType db_type) {
 }
 
 void DatabaseWrapper::GetFilesDBInfo() {
-    ////строка с данными для подключения бует браться из конфиг-файла
-    _files_db_info = "host=localhost dbname=files_db user=screamer_cloud password=1221";
+    pt::ptree root;
+    pt::read_json("../../config.json", root);
+
+    string  info;
+
+    for (pt::ptree::value_type &values : root.get_child("files_db_info"))
+    {
+        info += values.first + "=";
+        info += values.second.data() + " ";
+    }
+    _files_db_info = move(info);
 }
 
 void DatabaseWrapper::GetUsersDBInfo() {
-    _users_db_info = "host=localhost dbname=users_db user=screamer_cloud password=1221";
+    pt::ptree root;
+    pt::read_json("../../config.json", root);
+
+    string info;
+
+    for (pt::ptree::value_type &values : root.get_child("users_db_info"))
+    {
+        info += values.first + "=";
+        info += values.second.data() + " ";
+    }
+   _users_db_info = move(info);
 }
 
 void DatabaseWrapper::SetUserID(int userID) {
@@ -225,11 +240,11 @@ void DatabaseWrapper::DeleteUserRecord(int userID){
         connection = GetConnection(USERS_DB);
     }
     catch(std::exception &exc) {
-        std::cout << exc.what() << std::endl; //////вывести в лог
+        BOOST_LOG_TRIVIAL(fatal) << exc.what();
     }
 
     std::string query = "DELETE FROM users_data WHERE id_user = " + std::to_string(userID);
-    std::cout <<  "      " << query << std::endl;
+    BOOST_LOG_TRIVIAL(trace) << query;
 
     auto res_deleter = [](PGresult* r) { PQclear(r);};
     std::unique_ptr <PGresult, decltype(res_deleter)> query_result(PQexec(connection.get(), query.c_str()), res_deleter);
@@ -246,11 +261,11 @@ void DatabaseWrapper::DeleteFileRecord(int fileID) {
         connection = GetConnection(FILES_DB);
     }
     catch(std::exception &exc) {
-        std::cout << exc.what() << std::endl; //////вывести в лог
+        BOOST_LOG_TRIVIAL(fatal) << exc.what();
     }
 
     std::string query = "DELETE FROM files_data WHERE id_file = " + std::to_string(fileID);
-    std::cout <<  "      " << query << std::endl;
+    BOOST_LOG_TRIVIAL(trace) << query;
 
     auto res_deleter = [](PGresult* r) { PQclear(r);};
     std::unique_ptr <PGresult, decltype(res_deleter)> query_result(PQexec(connection.get(), query.c_str()), res_deleter);
@@ -267,11 +282,11 @@ void DatabaseWrapper::DeleteAllFiles() {
         connection = GetConnection(FILES_DB);
     }
     catch(std::exception &exc) {
-        std::cout << exc.what() << std::endl; //////вывести в лог
+        BOOST_LOG_TRIVIAL(fatal) << exc.what();
     }
 
     std::string query = "DELETE FROM files_data WHERE id_user = " + to_string(_userID);
-    std::cout <<  "      " << query << std::endl;
+    BOOST_LOG_TRIVIAL(trace) << query;
 
     auto res_deleter = [](PGresult* r) { PQclear(r);};
     std::unique_ptr <PGresult, decltype(res_deleter)> query_result(PQexec(connection.get(), query.c_str()), res_deleter);

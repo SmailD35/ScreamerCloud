@@ -6,6 +6,7 @@
 
 using namespace std;
 namespace fs = boost::filesystem;
+namespace pt = boost::property_tree;
 
 FilesDatabaseManager::FilesDatabaseManager() {
     _userID = NIL;
@@ -24,7 +25,6 @@ void FilesDatabaseManager::SetUserDirectory(string userDirectory) {
     _userDirectory = std::move(userDirectory);
 }
 
-///////////////////////////////////////////////////////////////////////////////
 shared_ptr<FILE> FilesDatabaseManager::GetFilePtr(int file_ID) {
     string path_to_file = _path_users_storage + _userDirectory + to_string(file_ID);
 
@@ -33,7 +33,11 @@ shared_ptr<FILE> FilesDatabaseManager::GetFilePtr(int file_ID) {
     if(tmp != nullptr)
         fp = shared_ptr<FILE>(tmp, fclose);
     else
+    {
+        BOOST_LOG_TRIVIAL(error) << "Can't get file ptr of " + to_string(file_ID);
         return nullptr;
+    }
+
 
     return fp;
 }
@@ -54,7 +58,7 @@ bool FilesDatabaseManager::UploadFile(const string &file_name, const string &dir
     }
     catch(exception &exc)
     {
-        cout << exc.what() << endl; //////логи
+        BOOST_LOG_TRIVIAL(error) << exc.what();
         return false;
     }
 }
@@ -68,7 +72,7 @@ shared_ptr<FILE> FilesDatabaseManager::DownloadFile(string const& file_name, str
         fileID = _databaseConnection.CheckFileID(file_name, dir_name);
     }
     catch (exception &exc) {
-        cout << exc.what() << endl;
+        BOOST_LOG_TRIVIAL(debug) << exc.what();
         return nullptr;
     }
 
@@ -84,7 +88,7 @@ bool FilesDatabaseManager::DeleteFile(const string &file_name, const string &dir
              return false;
     }
     catch (exception &exc) {
-        cout << exc.what() << endl; ////////log
+        BOOST_LOG_TRIVIAL(debug) << exc.what();
         return false;
     }
 
@@ -94,7 +98,7 @@ bool FilesDatabaseManager::DeleteFile(const string &file_name, const string &dir
         return true;
     }
     catch (exception &exc) {
-        cout << exc.what() << endl; ////////log
+        BOOST_LOG_TRIVIAL(error) << exc.what();
         return false;
     }
 }
@@ -106,18 +110,21 @@ map<string, string> FilesDatabaseManager::GetFileList(string const& dir_name) {
         file_list = _databaseConnection.GetFileList(dir_name);
     }
     catch (exception &exc) {
-        cout << exc.what() << endl; ////логи
+        BOOST_LOG_TRIVIAL(debug) << exc.what();
     }
     return file_list;
 }
 
 
 void FilesDatabaseManager::SetPathToUsersStorage() {
-    string read_path =  "../users_files/";
-    if (!fs::exists(read_path))
-        fs::create_directory(read_path);
-    _path_users_storage = read_path;
     ////считываем из конфига путь к хранящимся файлам пользователей
+    pt::ptree root;
+    pt::read_json("../config.json", root);
+    string users_path = root.get<string>("users_storage");
+
+    if (!fs::exists(users_path))
+        fs::create_directory(users_path);
+    _path_users_storage = users_path;
 }
 
 bool FilesDatabaseManager::CheckExistingFile(const std::string &file_name, const std::string &dir_name) {

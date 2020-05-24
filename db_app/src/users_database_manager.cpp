@@ -25,7 +25,7 @@ int UsersDatabaseManager::RegisterUser(string const& login, string const& passwo
                 return _userID;
             }
             catch (exception &exc) {
-                std::cout << exc.what() << std::endl; ///log
+                BOOST_LOG_TRIVIAL(error) << exc.what();
                 return FAIL;
             }
         }
@@ -33,7 +33,7 @@ int UsersDatabaseManager::RegisterUser(string const& login, string const& passwo
             return FAIL;
     }
     catch (exception &exc) {
-        std::cout << exc.what() << std::endl; ///log
+        BOOST_LOG_TRIVIAL(debug) << exc.what();
         return FAIL;
     }
 }
@@ -50,7 +50,7 @@ int UsersDatabaseManager::AuthorizeUser(string const& login, string const& passw
         return _userID;
     }
     catch (exception &exc) {
-        std::cout << exc.what() << std::endl; ///log
+        BOOST_LOG_TRIVIAL(debug) << exc.what();
         return FAIL;
     }
 }
@@ -66,13 +66,13 @@ bool UsersDatabaseManager::DeleteUser(const string &login, const string &passwor
                     fs::remove(_databaseConnection.GetUsersStoragePath() + to_string(userID));
                 }
                 catch (exception &exc) {
-                    std::cout << exc.what() << std::endl; ///log
+                    BOOST_LOG_TRIVIAL(error) << exc.what();
                     return false;
                 }
                 return true;
             }
             catch (exception &exc) {
-                std::cout << exc.what() << std::endl; ///log
+                BOOST_LOG_TRIVIAL(error) << exc.what();
                 return false;
             }
         }
@@ -80,7 +80,7 @@ bool UsersDatabaseManager::DeleteUser(const string &login, const string &passwor
             return false;
     }
     catch (exception &exc) {
-        std::cout << exc.what() << std::endl; ///log
+        BOOST_LOG_TRIVIAL(debug) << exc.what();
         return false;
     }
 }

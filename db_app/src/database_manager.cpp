@@ -10,6 +10,7 @@ DatabaseManager::DatabaseManager() {
     _usersDatabaseManager = UsersDatabaseManager();
     _filesDatabaseManager = FilesDatabaseManager();
     _userID = NIL;
+    InitLogging();
 }
 
 string DatabaseManager::GetUserDir() {
