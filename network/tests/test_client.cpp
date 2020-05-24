@@ -18,8 +18,15 @@ int main(int argc, char **argv)
 	std::cout << (map == new_map) << std::endl;*/
 
 	std::map<std::string, std::string> map = {{"login", "egor"}, {"password", "12345"}};
+	std::map<std::string, std::string> * map_new;
 
 	ClientNetwork Client("127.0.0.1", 34356);
 	Client.SendMsg(map);
+	map_new = Client.RecvMsg();
+	for (auto& it : *map_new)///вывод на экран
+	{
+		std::cout << it.first << " : " << it.second << std::endl;
+	}
+	std::cout << "end" << std::endl;
 	return 0;
 }
