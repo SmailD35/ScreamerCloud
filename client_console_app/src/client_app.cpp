@@ -8,12 +8,12 @@ using namespace std;
 
 ClientApp::ClientApp()
 {
-
+	_clientNetwork = new ClientNetwork("127.0.0.1", 34356);
 }
 
 ClientApp::~ClientApp()
 {
-
+	delete _clientNetwork;
 }
 
 void ClientApp::ParseCmdArguments(int argc, char** argv)
@@ -102,10 +102,11 @@ int ClientApp::UploadFile()
 	Request();
 	if (ValidateResponse())
 	{
+		//_file = new InFile();
 		cout << "Uploading file...\n";
-		thread progressBar(&ClientApp::PrintProgress, this, consoleWidth);
-		_clientNetwork->SendFile(_file);
-		progressBar.join();
+		//thread progressBar(&ClientApp::PrintProgress, this, consoleWidth);
+		//_clientNetwork->SendFile(_file);
+		//progressBar.join();
 		return 0;
 	}
 		return -1;
@@ -116,10 +117,11 @@ int ClientApp::DownloadFile()
 	Request();
 	if (ValidateResponse())
 	{
+		//_file = new OutFile();
 		cout << "Downloading file...\n";
-		thread progressBar(&ClientApp::PrintProgress, this, consoleWidth);
-		_clientNetwork->RecvFile(&_file);
-		progressBar.join();
+		//thread progressBar(&ClientApp::PrintProgress, this, consoleWidth);
+		//_clientNetwork->RecvFile(_file);
+		//progressBar.join();
 		return 0;
 	}
 	return -1;
@@ -202,7 +204,7 @@ int ClientApp::LoginUser()
 void ClientApp::Request()
 {
 	_clientNetwork->SendMsg(_clientRequest);
-	_serverResponse = _clientNetwork->RecvMsg();
+	_serverResponse = std::move(*_clientNetwork->RecvMsg());
 }
 
 bool ClientApp::ValidateResponse()
@@ -219,16 +221,16 @@ bool ClientApp::ValidateResponse()
 	return false;
 }
 
-void ClientApp::PrintProgress(int outputWidth)
-{
-	int progress = 0;
-	while (_file.GetProgress() < 100)
-	{
-		progress = (float(_file.GetProgress()) / 100) * outputWidth;
-		cout << string(outputWidth + 5, '\b');
-		cout << string(progress, '#') << string(outputWidth - progress, '_') << ' ' << _file.GetProgress() << '%';
-		cout.flush();
-		this_thread::sleep_for(chrono::milliseconds(500));
-	}
-	cout << endl;
-}
+//void ClientApp::PrintProgress(int outputWidth)
+//{
+//	int progress = 0;
+//	while (_file.GetProgress() < 100)
+//	{
+//		progress = (float(_file.GetProgress()) / 100) * outputWidth;
+//		cout << string(outputWidth + 5, '\b');
+//		cout << string(progress, '#') << string(outputWidth - progress, '_') << ' ' << _file.GetProgress() << '%';
+//		cout.flush();
+//		this_thread::sleep_for(chrono::milliseconds(500));
+//	}
+//	cout << endl;
+//}

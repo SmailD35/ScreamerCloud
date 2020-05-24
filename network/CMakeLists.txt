@@ -4,8 +4,9 @@ set(CMAKE_CXX_STANDARD 14)
 #enable_testing()
 
 #add_subdirectory(tests)
+
 find_package(Boost REQUIRED COMPONENTS system serialization)
-include_directories(network_client/headers network_server/headers ../utills)
+include_directories(network_client/headers network_server/headers ../utills ${Boost_INCLUDE_DIRS})
 link_directories(../utills/cmake-build-debug/)
 
 add_library(network_client SHARED network_client/src/network_client.cpp network_client/headers/network_client.h)

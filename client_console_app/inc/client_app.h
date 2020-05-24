@@ -10,11 +10,9 @@
 #include <chrono>
 #include <boost/program_options.hpp>
 #include "file.h"
-#include "client_network_mock.h"
+#include "network_client.h"
 
 namespace po = boost::program_options;
-
-enum CmdCodeClient { UPLOAD_CLI, DOWNLOAD_CLI, DELETE_CLI, LIST_CLI, REGISTER_CLI, LOGIN_CLI };
 
 const int consoleWidth = 50;
 
@@ -41,12 +39,12 @@ class ClientApp
 	int LoginUser();
 	void Request();
 	bool ValidateResponse();
-	void PrintProgress(int outputWidth);
+	//void PrintProgress(int outputWidth);
 
  private:
 	std::string _currentDirectory;
 	User _user;
-	File _file;
+	File* _file;
 	std::map <std::string,std::string> _clientRequest;
 	std::map <std::string,std::string> _serverResponse;
 	ClientNetwork* _clientNetwork;
