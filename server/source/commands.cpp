@@ -28,7 +28,7 @@ void RegisterUserCommand::Do()
 	ConnectionNetwork network = _userSession._userConnection;
 	map<string,string> query = _userSession._userQuery;
 
-	int errorCode = dbManager.Register(query["username"], query["password"]);
+	bool errorCode = dbManager.Register(query["username"], query["password"]);
 	query["error_code"] = to_string(errorCode);
 
 	network.SendMsg(query);
@@ -41,21 +41,12 @@ void RegisterUserCommand::Undo()
 
 void LoginUserCommand::Do()
 {
-//	DatabaseManager dbManager = _userSession._databaseManager;
-//	ConnectionNetwork network = _userSession._userConnection;
-//	map<string,string> query = _userSession._userQuery;
-//
-//	int errorCode = dbManager.Register(query["username"], query["password"]);
-//	query["error_code"] = to_string(errorCode);
-//
-//	network.SendMsg(query);
+	DatabaseManager dbManager = _userSession._databaseManager;
 	ConnectionNetwork network = _userSession._userConnection;
 	map<string,string> query = _userSession._userQuery;
 
-	if (query["username"] == "sasha" && query["password"] == "1234" )
-		query["error_code"] = "0";
-	else
-		query["error_code"] = "1";
+	bool errorCode = dbManager.Authorize(query["username"], query["password"]);
+	query["error_code"] = to_string(errorCode);
 
 	network.SendMsg(query);
 }
