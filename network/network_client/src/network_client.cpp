@@ -23,7 +23,7 @@ std::size_t ClientNetwork::Recv()
 	std::size_t read_size;
 	try
 	{
-		read_size = boost::asio::read(*_socket, buf);
+		read_size = boost::asio::read_until(*_socket, buf, "\0");
 	}
 	catch(std::exception& e)
 	{
