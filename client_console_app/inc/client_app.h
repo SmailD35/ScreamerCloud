@@ -9,24 +9,26 @@
 #include <thread>
 #include <chrono>
 #include <boost/program_options.hpp>
+#include <boost/property_tree/json_parser.hpp>
 #include "file.h"
 #include "network_client.h"
 
 namespace po = boost::program_options;
+namespace pt = boost::property_tree;
 
 const int consoleWidth = 50;
 
 struct User
 {
-	std::string login;
-	std::string password;
+	bool IsLoggedIn();
+	std::string login = "";
+	std::string password = "";
 };
 
 class ClientApp
 {
  public:
-	ClientApp();
-	ClientApp(ClientNetwork* clientNetwork) : _clientNetwork(clientNetwork) {};
+	explicit ClientApp(std::string IP = "127.0.0.1", int port = 23545);
 	~ClientApp();
 	void ParseCmdArguments(int argc, char** argv);
 	int ExecuteRequest();
@@ -39,7 +41,8 @@ class ClientApp
 	int LoginUser();
 	void Request();
 	bool ValidateResponse();
-	void PrintProgress(int outputWidth);
+	void PrintProgress(int outputWidth = 50);
+	void ReadConfig(std::string configPath = "../client_conf.json");
 
  private:
 	std::string _currentDirectory;

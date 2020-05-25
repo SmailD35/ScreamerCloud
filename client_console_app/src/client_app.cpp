@@ -7,14 +7,16 @@
 
 using namespace std;
 
-ClientApp::ClientApp()
+ClientApp::ClientApp(string IP, int port)
 {
-	_clientNetwork = new ClientNetwork("127.0.0.1", 23545);
+	_clientNetwork = new ClientNetwork(IP, port);
+	_file = nullptr;
 }
 
 ClientApp::~ClientApp()
 {
 	delete _clientNetwork;
+	delete _file;
 }
 
 void ClientApp::ParseCmdArguments(int argc, char** argv)
@@ -100,6 +102,15 @@ int ClientApp::ExecuteRequest()
 
 int ClientApp::UploadFile()
 {
+	if (!_user.IsLoggedIn())
+	{
+		cout << "You are not logged in" << endl;
+		return -1;
+	}
+
+	_clientRequest["username"] = _user.login;
+	_clientRequest["password"] = _user.password;
+
 	Request();
 	if (ValidateResponse())
 	{
@@ -115,6 +126,12 @@ int ClientApp::UploadFile()
 
 int ClientApp::DownloadFile()
 {
+	if (!_user.IsLoggedIn())
+	{
+		cout << "You are not logged in" << endl;
+		return -1;
+	}
+
 	Request();
 	if (ValidateResponse())
 	{
@@ -236,4 +253,28 @@ void ClientApp::PrintProgress(int outputWidth)
 		this_thread::sleep_for(chrono::milliseconds(500));
 	}
 	cout << endl;
+}
+
+void ClientApp::ReadConfig(string configPath)
+{
+	pt::ptree root;
+	pt::read_json(configPath, root);
+
+	string  info;
+
+	for (pt::ptree::value_type &values : root.get_child("user"))
+	{
+		if (values.first == "username")
+			_user.login = values.second.data();
+		if (values.first == "password")
+			_user.password = values.second.data();
+	}
+}
+
+bool User::IsLoggedIn()
+{
+	if (login != "" && password != "")
+		return true;
+	else
+		return false;
 }
