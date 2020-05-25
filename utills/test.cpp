@@ -7,9 +7,12 @@
 int main()
 {
 	OutFile* outFile = new OutFile(4, "azaz.txt");
-	outFile->SetNextChunk("azazazazazazazaz");
+	outFile->SetNextChunk("vasya petya katya");
 	delete outFile;
 
-	InFile inFile("azaz.txt");
+	InFile inFile("azaz.txt", 16);
+	std::cout << inFile.GetNextChunk();
+	std::cout << inFile.GetNextChunk();
+	std::cout << inFile.GetNextChunk();
 	std::cout << inFile.GetNextChunk();
 }

@@ -8,11 +8,12 @@
 class File
 {
  public:
-	virtual ~File() = default;;
+	virtual ~File() = default;
 	std::string GetHash();
 	void ResetChunks();
 	int GetProgress();
 	int CalculateHash();
+	virtual size_t GetSize() = 0;
 
  protected:
 	std::string _hashSum;
@@ -29,6 +30,7 @@ class OutFile : public File
 	OutFile(size_t size, std::string filePath, size_t chunkSize = 1024);
 	~OutFile() override;
 	void SetNextChunk(std::string buf);
+	size_t GetSize() override;
 
  private:
 	std::ofstream _file;
@@ -40,7 +42,7 @@ class InFile : public File
 	explicit InFile(std::string filePath, size_t chunkSize = 1024);
 	~InFile() override;
 	std::string GetNextChunk();
-	size_t GetSize();
+	size_t GetSize() override;
 
  private:
 	std::ifstream _file;

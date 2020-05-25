@@ -9,7 +9,7 @@ using namespace std;
 
 string File::GetHash()
 {
-	return string(4,'0');
+	return "";
 }
 
 void File::ResetChunks()
@@ -33,7 +33,7 @@ OutFile::OutFile(size_t size, std::string filePath, size_t chunkSize)
 	_size = size;
 	_path = std::move(filePath);
 	_chunkSize = chunkSize;
-	_chunksCount = ceil(_size / chunkSize);
+	_chunksCount = ceil(float(_size) / chunkSize);
 	_file.open(_path,  std::ofstream::out | std::ofstream::app);
 }
 
@@ -47,6 +47,11 @@ void OutFile::SetNextChunk(string buf)
 	if (_chunksCurrent >= _chunksCount) return;
 	_file << buf;
 	_chunksCurrent++;
+}
+
+size_t OutFile::GetSize()
+{
+	return _size;
 }
 
 InFile::InFile(std::string filePath, size_t chunkSize)
@@ -67,6 +72,7 @@ string InFile::GetNextChunk()
 {
 	if (_chunksCurrent >= _chunksCount) return "";
 	string buf;
+	_file.width(_chunkSize);
 	_file >> buf;
 	_chunksCurrent++;
 	return std::move(buf);
