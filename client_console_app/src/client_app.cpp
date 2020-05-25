@@ -162,6 +162,7 @@ int ClientApp::RegisterUser()
 
 	_clientRequest["username"] = username;
 	_clientRequest["password"] = password;
+	_clientRequest["error_code"] = "0";
 
 	Request();
 	if (!ValidateResponse())
