@@ -39,7 +39,7 @@ class ClientApp
 	int LoginUser();
 	void Request();
 	bool ValidateResponse();
-	//void PrintProgress(int outputWidth);
+	void PrintProgress(int outputWidth);
 
  private:
 	std::string _currentDirectory;

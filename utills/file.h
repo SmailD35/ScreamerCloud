@@ -13,21 +13,20 @@ class File
 	void ResetChunks();
 	int GetProgress();
 	int CalculateHash();
-	int GetSize();
 
  protected:
 	std::string _hashSum;
-	int _chunkSize = 1;
-	int _size = 0;
-	int _chunksCurrent = 0;
-	int _chunksCount = 0;
+	size_t _chunkSize = 1;
+	size_t _size = 0;
+	size_t _chunksCurrent = 0;
+	size_t _chunksCount = 0;
 	std::string _path;
 };
 
 class OutFile : public File
 {
  public:
-	OutFile(int size, std::string filePath, int chunkSize = 1024);
+	OutFile(size_t size, std::string filePath, size_t chunkSize = 1024);
 	~OutFile() override;
 	void SetNextChunk(std::string buf);
 
@@ -38,9 +37,10 @@ class OutFile : public File
 class InFile : public File
 {
  public:
-	InFile(int size, std::string filePath, int chunkSize = 1024);
+	explicit InFile(std::string filePath, size_t chunkSize = 1024);
 	~InFile() override;
 	std::string GetNextChunk();
+	size_t GetSize();
 
  private:
 	std::ifstream _file;

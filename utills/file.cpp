@@ -2,6 +2,7 @@
 // Created by Aleksandr Dergachev on 20.04.2020.
 //
 
+#include <sys/stat.h>
 #include "file.h"
 
 using namespace std;
@@ -27,12 +28,7 @@ int File::CalculateHash()
 	return 0;
 }
 
-int File::GetSize()
-{
-	return _size;
-}
-
-OutFile::OutFile(int size, std::string filePath, int chunkSize)
+OutFile::OutFile(size_t size, std::string filePath, size_t chunkSize)
 {
 	_size = size;
 	_path = std::move(filePath);
@@ -53,12 +49,12 @@ void OutFile::SetNextChunk(string buf)
 	_chunksCurrent++;
 }
 
-InFile::InFile(int size, std::string filePath, int chunkSize)
+InFile::InFile(std::string filePath, size_t chunkSize)
 {
-	_size = size;
 	_path = std::move(filePath);
+	_size = GetSize();
 	_chunkSize = chunkSize;
-	_chunksCount = ceil(_size / chunkSize);
+	_chunksCount = ceil(float(_size) / chunkSize);
 	_file.open(_path,  std::ifstream::in);
 }
 
@@ -74,4 +70,13 @@ string InFile::GetNextChunk()
 	_file >> buf;
 	_chunksCurrent++;
 	return std::move(buf);
+}
+
+size_t InFile::GetSize()
+{
+	if (_size > 0) return _size;
+
+	struct stat stat_buf{};
+	int rc = stat(_path.c_str(), &stat_buf);
+	return rc == 0 ? stat_buf.st_size : -1;
 }

@@ -10,6 +10,6 @@ int main()
 	outFile->SetNextChunk("azazazazazazazaz");
 	delete outFile;
 
-	InFile inFile(4, "azaz.txt");
+	InFile inFile("azaz.txt");
 	std::cout << inFile.GetNextChunk();
 }
