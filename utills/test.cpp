@@ -6,11 +6,13 @@
 
 int main()
 {
-	OutFile* outFile = new OutFile(4, "azaz.txt");
-	outFile->SetNextChunk("vasya petya katya");
+	auto* outFile = new OutFile(17, "azaz.txt");
+	std::string buf("vasya petya katya");
+	outFile->SetNextChunk(buf);
 	delete outFile;
 
-	InFile inFile("azaz.txt", 16);
+	InFile inFile("azaz.txt", 4);
+	std::cout << inFile.GetNextChunk();
 	std::cout << inFile.GetNextChunk();
 	std::cout << inFile.GetNextChunk();
 	std::cout << inFile.GetNextChunk();

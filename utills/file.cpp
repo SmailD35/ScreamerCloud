@@ -34,7 +34,7 @@ OutFile::OutFile(size_t size, std::string filePath, size_t chunkSize)
 	_path = std::move(filePath);
 	_chunkSize = chunkSize;
 	_chunksCount = ceil(float(_size) / chunkSize);
-	_file.open(_path,  std::ofstream::out | std::ofstream::app);
+	_file.open(_path,  std::ofstream::out | std::ofstream::app | std::ofstream::binary);
 }
 
 OutFile::~OutFile()
@@ -45,7 +45,19 @@ OutFile::~OutFile()
 void OutFile::SetNextChunk(string buf)
 {
 	if (_chunksCurrent >= _chunksCount) return;
-	_file << buf;
+	if (buf.size() > _chunkSize) return;
+//	if (_chunkSize > buf.size())
+//	{
+//		_file.write(buf.c_str(), buf.size());
+//	}
+//	if (_chunksCurrent == _chunksCount)
+//	{
+//		_file.write(buf, _size - _chunksCurrent * _chunkSize);
+//		_file.write("\n", 1);
+//	}
+//	else
+//		_file.write(buf, _chunkSize);
+	_file.write(buf.c_str(), buf.size());
 	_chunksCurrent++;
 }
 
@@ -60,7 +72,7 @@ InFile::InFile(std::string filePath, size_t chunkSize)
 	_size = GetSize();
 	_chunkSize = chunkSize;
 	_chunksCount = ceil(float(_size) / chunkSize);
-	_file.open(_path,  std::ifstream::in);
+	_file.open(_path,  std::ifstream::in | std::ifstream::binary);
 }
 
 InFile::~InFile()
@@ -71,11 +83,16 @@ InFile::~InFile()
 string InFile::GetNextChunk()
 {
 	if (_chunksCurrent >= _chunksCount) return "";
-	string buf;
-	_file.width(_chunkSize);
-	_file >> buf;
+	//if (((_chunksCurrent + 1) * _chunkSize) > _size)
+
+	char buf[_chunkSize];
+	//_file.width(_chunkSize);
+	//_file >> buf;
+	_file.read(buf, _chunkSize);
+	string result(buf, _chunkSize);
+	//result[_chunkSize] = '\0';
 	_chunksCurrent++;
-	return std::move(buf);
+	return buf;
 }
 
 size_t InFile::GetSize()
