@@ -11,6 +11,7 @@ ClientApp::ClientApp(string IP, int port)
 {
 	_clientNetwork = new ClientNetwork(IP, port);
 	_file = nullptr;
+	ReadConfig();
 }
 
 ClientApp::~ClientApp()
