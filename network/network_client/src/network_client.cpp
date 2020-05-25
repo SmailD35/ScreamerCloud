@@ -71,31 +71,32 @@ map<string, string> * ClientNetwork::RecvMsg()
 ClientNetwork::~ClientNetwork()
 = default;
 
-int ClientNetwork::SendFile(InFile &file_obj)
+int ClientNetwork::SendFile(InFile * file_obj)
 {
-	int file_size = file_obj.GetSize();
+	int file_size = file_obj->GetSize();
 	int send_bytes = 0;
-	//int loop_count = file_size / 1024 + 1;
 
 	for (int i = 0; send_bytes < file_size; ++i)
 	{
 		buf_send.clear();
-		buf_send = file_obj.GetNextChunk();
+		buf_send = file_obj->GetNextChunk();
+		if (buf_send.empty())
+			return 1;
 		send_bytes += Send(1024);
 	}
 	return 0;
 };
 
-int ClientNetwork::RecvFile(OutFile &file_obj)
+int ClientNetwork::RecvFile(OutFile * file_obj)
 {
-	int file_size = file_obj.GetSize();
+	int file_size = file_obj->GetSize();
 	int recv_bytes = 0;
 
 	for (int i = 0; recv_bytes < file_size; ++i)
 	{
 		buf_send.clear();
 		recv_bytes += Recv();
-		file_obj.SetNextChunk(buf_recv);
+		file_obj->SetNextChunk(buf_recv);
 	}
 	return 0;
 };

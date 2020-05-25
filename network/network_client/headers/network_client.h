@@ -43,8 +43,8 @@ public:
 	~ClientNetwork();
 	void SendMsg(std::map<std::string, std::string> &client_query);
 	std::map<std::string, std::string> * RecvMsg();
-	int SendFile(InFile &file_obj);
-	int RecvFile(OutFile &file_obj);
+	int SendFile(InFile * file_obj);
+	int RecvFile(OutFile * file_obj);
 };
 
 

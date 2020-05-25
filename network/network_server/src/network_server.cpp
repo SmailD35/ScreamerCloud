@@ -105,31 +105,32 @@ map<string, string> * ConnectionNetwork::RecvMsg()
 	return server_answer;
 };
 
-int ConnectionNetwork::SendFile(InFile &file_obj)
+int ConnectionNetwork::SendFile(InFile * file_obj)
 {
-	int file_size = file_obj.GetSize();
+	int file_size = file_obj->GetSize();
 	int send_bytes = 0;
-	//int loop_count = file_size / 1024 + 1;
 
 	for (int i = 0; send_bytes < file_size; ++i)
 	{
 		_buf_send.clear();
-		_buf_send = file_obj.GetNextChunk();
+		_buf_send = file_obj->GetNextChunk();
+		if (_buf_send.empty())
+			return 1;
 		send_bytes += Send(1024);
 	}
 	return 0;
 };
 
-int ConnectionNetwork::RecvFile(OutFile &file_obj)
+int ConnectionNetwork::RecvFile(OutFile * file_obj)
 {
-	int file_size = file_obj.GetSize();
+	int file_size = file_obj->GetSize();
 	int recv_bytes = 0;
 
 	for (int i = 0; recv_bytes < file_size; ++i)
 	{
 		_buf_send.clear();
 		recv_bytes += Recv();
-		file_obj.SetNextChunk(_buf_recv);
+		file_obj->SetNextChunk(_buf_recv);
 	}
 	return 0;
 };
