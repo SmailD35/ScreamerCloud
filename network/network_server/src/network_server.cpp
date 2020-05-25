@@ -67,8 +67,9 @@ size_t ConnectionNetwork::Recv()
 		cout << e.what() << endl;
 	}
 	_buf_recv = boost::asio::buffer_cast<const char*>(buf.data());
-	cout << _buf_recv << endl;
-	return read_size;
+	cout << _buf_recv.size() << endl;
+	size_t buf_size = _buf_recv.size();
+	return buf_size;
 };
 
 int ConnectionNetwork::Serialize(map<string, string> &server_answer)

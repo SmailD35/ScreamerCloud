@@ -30,8 +30,8 @@ std::size_t ClientNetwork::Recv()
 		cout << e.what() << endl;
 	}
 	buf_recv = boost::asio::buffer_cast<const char*>(buf.data());
-	//cout << buf_recv << endl;
-	return read_size;
+	size_t buf_size = buf_recv.size();
+	return buf_size;
 };
 
 int ClientNetwork::Serialize(map<string, string> &client_query)
