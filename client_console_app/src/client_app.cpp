@@ -108,7 +108,7 @@ int ClientApp::UploadFile()
 		cout << "You are not logged in" << endl;
 		return -1;
 	}
-
+	_file = new InFile(_clientRequest["file_name"]);
 	_clientRequest["username"] = _user.login;
 	_clientRequest["password"] = _user.password;
 	_clientRequest["file_size"] = to_string(_file->GetSize());
@@ -117,7 +117,6 @@ int ClientApp::UploadFile()
 	Request();
 	if (ValidateResponse())
 	{
-		_file = new InFile(_clientRequest["file_name"]);
 		cout << "Uploading file...\n";
 		thread progressBar(&ClientApp::PrintProgress, this, consoleWidth);
 		_clientNetwork->SendFile(reinterpret_cast<InFile&>(_file));
@@ -185,7 +184,7 @@ int ClientApp::RegisterUser()
 	_clientRequest["error_code"] = "0";
 
 	Request();
-	if (!ValidateResponse())
+	if (ValidateResponse())
 	{
 		cout << "Registration success\n";
 		return 0;
@@ -212,7 +211,7 @@ int ClientApp::LoginUser()
 	_clientRequest["error_code"] = "0";
 
 	Request();
-	if (!ValidateResponse())
+	if (ValidateResponse())
 	{
 		cout << "Login success\n";
 		return 0;
