@@ -62,13 +62,21 @@ void SendFileCommand::Do()
 	ConnectionNetwork network = _userSession._userConnection;
 	map<string,string> query = _userSession._userQuery;
 
-	int errorCode = dbManager.Upload(query["file_name"], query["upload_directory"], query["hash_sum"]);
-	query["error_code"] = to_string(errorCode);
+	bool error = dbManager.Authorize(query["username"], query["password"]);
+	query["error_code"] = to_string(error);
 
 	network.SendMsg(query);
-	//if (errorCode == 0)
-		//network.RecvFile();
-		//TODO: проверить хеш-сумму
+
+	if (error == 0)
+	{
+		string file_path = dbManager.GetUserDir() + query["file_name"];
+		auto file = new OutFile(stoi(query["file_size"]), file_path);
+		network.RecvFile(reinterpret_cast<OutFile&>(file));
+		error = dbManager.Upload(query["file_name"], query["upload_directory"], "");
+	}
+
+	network.SendMsg(query);
+	//TODO: проверить хеш-сумму
 }
 
 void SendFileCommand::Undo()
