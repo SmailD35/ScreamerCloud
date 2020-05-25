@@ -110,6 +110,8 @@ int ClientApp::UploadFile()
 
 	_clientRequest["username"] = _user.login;
 	_clientRequest["password"] = _user.password;
+	_clientRequest["file_size"] = to_string(_file->GetSize());
+	_clientRequest["error_code"] = "0";
 
 	Request();
 	if (ValidateResponse())
