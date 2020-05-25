@@ -83,14 +83,28 @@ InFile::~InFile()
 string InFile::GetNextChunk()
 {
 	if (_chunksCurrent >= _chunksCount) return "";
-	//if (((_chunksCurrent + 1) * _chunkSize) > _size)
 
+	if (_chunkSize > _size)
+	{
+		char buf[_size];
+		_file.read(buf, _size);
+		string result(buf, _size);
+		_chunksCurrent++;
+		return result;
+	}
+
+	if (_chunksCurrent == _chunksCount)
+	{
+		size_t size = _size - _chunkSize * _chunksCurrent;
+		char buf[size];
+		_file.read(buf, size);
+		string result(buf, size);
+		_chunksCurrent++;
+		return result;
+	}
 	char buf[_chunkSize];
-	//_file.width(_chunkSize);
-	//_file >> buf;
 	_file.read(buf, _chunkSize);
 	string result(buf, _chunkSize);
-	//result[_chunkSize] = '\0';
 	_chunksCurrent++;
 	return buf;
 }

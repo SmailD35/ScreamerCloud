@@ -7,7 +7,7 @@
 int main()
 {
 	auto* outFile = new OutFile(17, "azaz.txt");
-	std::string buf("vasya petya katya");
+	std::string buf("Hello world!");
 	outFile->SetNextChunk(buf);
 	delete outFile;
 
