@@ -27,7 +27,7 @@ class File
 class OutFile : public File
 {
  public:
-	OutFile(size_t size, std::string filePath, size_t chunkSize = 1024);
+	OutFile(size_t size, std::string fileDirectory, std::string fileName, size_t chunkSize = 1024);
 	~OutFile() override;
 	void SetNextChunk(std::string buf);
 	size_t GetSize() override;

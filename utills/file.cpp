@@ -28,12 +28,13 @@ int File::CalculateHash()
 	return 0;
 }
 
-OutFile::OutFile(size_t size, std::string filePath, size_t chunkSize)
+OutFile::OutFile(size_t size, string fileDirectory, string fileName, size_t chunkSize)
 {
 	_size = size;
-	_path = std::move(filePath);
+	_path = fileDirectory + '/' + fileName;
 	_chunkSize = chunkSize;
 	_chunksCount = ceil(float(_size) / chunkSize);
+
 	_file.open(_path,  std::ofstream::out | std::ofstream::app | std::ofstream::binary);
 }
 
@@ -46,17 +47,6 @@ void OutFile::SetNextChunk(string buf)
 {
 	if (_chunksCurrent >= _chunksCount) return;
 	if (buf.size() > _chunkSize) return;
-//	if (_chunkSize > buf.size())
-//	{
-//		_file.write(buf.c_str(), buf.size());
-//	}
-//	if (_chunksCurrent == _chunksCount)
-//	{
-//		_file.write(buf, _size - _chunksCurrent * _chunkSize);
-//		_file.write("\n", 1);
-//	}
-//	else
-//		_file.write(buf, _chunkSize);
 	_file.write(buf.c_str(), buf.size());
 	_chunksCurrent++;
 }
