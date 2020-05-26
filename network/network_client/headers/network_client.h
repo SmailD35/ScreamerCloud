@@ -9,6 +9,7 @@
 #include <boost/archive/text_iarchive.hpp>
 #include <boost/archive/text_oarchive.hpp>
 #include "file.h"
+#include <string.h>
 //#include "../../tests/headers/test_network_client.h"
 
 enum CmdCodeClient {HELP_CLI,
