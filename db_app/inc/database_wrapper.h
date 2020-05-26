@@ -14,7 +14,7 @@ extern "C"
 }
 
 #include <iostream>
-
+#include <fstream>
 #include <memory>
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/directory.hpp>

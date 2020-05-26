@@ -24,21 +24,30 @@ void FilesDatabaseManager::SetUserDirectory(string userDirectory) {
     _userDirectory = std::move(userDirectory);
 }
 
-shared_ptr<FILE> FilesDatabaseManager::GetFilePtr(int file_ID) {
-    string path_to_file = _path_users_storage + _userDirectory + to_string(file_ID);
+//shared_ptr<FILE> FilesDatabaseManager::GetFilePtr(int file_ID) {
+//    string path_to_file = _path_users_storage + _userDirectory + to_string(file_ID);
+//
+//    shared_ptr<FILE> fp;
+//    FILE * tmp = fopen(path_to_file.c_str(), "r");
+//    if(tmp != nullptr)
+//        fp = shared_ptr<FILE>(tmp, fclose);
+//    else
+//    {
+//        BOOST_LOG_TRIVIAL(error) << "Can't get file ptr of " + to_string(file_ID);
+//        return nullptr;
+//    }
+//
+//
+//    return fp;
+//}
 
-    shared_ptr<FILE> fp;
-    FILE * tmp = fopen(path_to_file.c_str(), "r");
-    if(tmp != nullptr)
-        fp = shared_ptr<FILE>(tmp, fclose);
-    else
-    {
-        BOOST_LOG_TRIVIAL(error) << "Can't get file ptr of " + to_string(file_ID);
-        return nullptr;
-    }
+shared_ptr<ifstream> FilesDatabaseManager::GetFileStream(int file_ID) {
+	string path_to_file = _path_users_storage + _userDirectory + to_string(file_ID);
 
-
-    return fp;
+	shared_ptr<ifstream> fp = make_shared<ifstream>(path_to_file, ifstream::in);
+	if (!fp->is_open())
+		BOOST_LOG_TRIVIAL(error) << "Can't get file stream of " + to_string(file_ID);
+	return fp;
 }
 
 bool FilesDatabaseManager::UploadFile(const string &file_name, const string &dir_name, const string &hash_sum) {
@@ -65,18 +74,18 @@ bool FilesDatabaseManager::UploadFile(const string &file_name, const string &dir
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////тут продумать систему кодов ошибок (можно сделать еще один аргумент функций, в который будет записываться код ошибки)
-shared_ptr<FILE> FilesDatabaseManager::DownloadFile(string const& file_name, string const& dir_name) {
-    int fileID;
-    try {
-        fileID = _databaseConnection.CheckFileID(file_name, dir_name);
-    }
-    catch (exception &exc) {
-        BOOST_LOG_TRIVIAL(debug) << exc.what();
-        return nullptr;
-    }
+std::shared_ptr<ifstream> FilesDatabaseManager::DownloadFile(string const& file_name, string const& dir_name) {
+	int fileID;
+	try {
+		fileID = _databaseConnection.CheckFileID(file_name, dir_name);
+	}
+	catch (exception &exc) {
+		BOOST_LOG_TRIVIAL(debug) << exc.what();
+		return nullptr;
+	}
 
-    shared_ptr<FILE> file(GetFilePtr(fileID));
-    return file;
+	shared_ptr<ifstream> file(GetFileStream(fileID));
+	return file;
 }
 
 bool FilesDatabaseManager::DeleteFile(const string &file_name, const string &dir_name) {
