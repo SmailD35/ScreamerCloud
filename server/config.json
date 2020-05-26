@@ -1,5 +1,5 @@
 {
-	"users_storage" : "../test_dir",
+	"users_storage" : "test_dir",
 	"users_db_info" : 
 	{
 		"host" : "localhost",

@@ -13,7 +13,7 @@
 class Server
 {
 public:
-	Server(std::string ip, int port);
+	Server(std::string ip = "127.0.0.1", int port = 23545);
 	void ConnectionsLoop();
 	void QueriesLoop();
 	void WorkerLoop();

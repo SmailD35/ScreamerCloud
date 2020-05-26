@@ -6,7 +6,7 @@ using namespace std;
 
 int main()
 {
-	auto server = new Server("127.0.0.1", 23545);
+	auto server = new Server();
 
 	thread connectionsLoop(&Server::ConnectionsLoop, server);
 	thread queriesLoop(&Server::QueriesLoop, server);
