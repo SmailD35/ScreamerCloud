@@ -97,16 +97,15 @@ int ClientNetwork::RecvFile(OutFile * file_obj)
 
 	for (int i = 0; recv_bytes < file_size; ++i)
 	{
-		boost::asio::streambuf buf_s;
 		try
 		{
-			boost::asio::read_until(*_socket, buf_s, "\0");
+			boost::asio::read(*_socket, boost::asio::buffer(buf, chunkSize));
 		}
 		catch(std::exception& e)
 		{
 			cout << e.what() << endl;
 		}
-		memcpy(&buf[0], boost::asio::buffer_cast<const void*>(buf_s.data()), buf_s.size());
+		//memcpy(&buf[0], boost::asio::buffer_cast<const void*>(buf_s.data()), buf_s.size());
 		recv_bytes += buf.size();
 
 		file_obj->SetNextChunk(buf);
