@@ -73,8 +73,8 @@ ClientNetwork::~ClientNetwork()
 
 int ClientNetwork::SendFile(InFile * file_obj)
 {
-	int file_size = file_obj->GetSize();
-	int send_bytes = 0;
+	size_t file_size = file_obj->GetSize();
+	size_t send_bytes = 0;
 	std::array<char, chunkSize> buf;
 	buf.fill('\0');
 
@@ -90,8 +90,8 @@ int ClientNetwork::SendFile(InFile * file_obj)
 
 int ClientNetwork::RecvFile(OutFile * file_obj)
 {
-	int file_size = file_obj->GetSize();
-	int recv_bytes = 0;
+	size_t file_size = file_obj->GetSize();
+	size_t recv_bytes = 0;
 	std::array<char, chunkSize> buf;
 	buf.fill('\0');
 
