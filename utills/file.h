@@ -24,7 +24,7 @@ class File
  protected:
 	std::string _hashSum;
 	size_t _size = 0;
-	size_t _chunksCurrent = 0;
+	size_t _chunksCurrent = 1;
 	size_t _chunksCount = 0;
 	std::string _path;
 };

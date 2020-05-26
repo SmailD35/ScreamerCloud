@@ -13,7 +13,7 @@ string File::GetHash()
 
 void File::ResetChunks()
 {
-	_chunksCurrent = 0;
+	_chunksCurrent = 1;
 }
 
 int File::GetProgress()
@@ -48,7 +48,15 @@ OutFile::~OutFile()
 
 void OutFile::SetNextChunk(std::array<char, chunkSize> buf)
 {
-	if (_chunksCurrent >= _chunksCount) return;
+	if (_chunksCurrent > _chunksCount) return;
+
+	if (_chunksCurrent == _chunksCount)
+	{
+		size_t size = _size - (_chunksCurrent - 1) * chunkSize;
+		_file.write(&buf[0], size);
+		_chunksCurrent++;
+		return;
+	}
 
 	_file.write(&buf[0], chunkSize);
 	_chunksCurrent++;
