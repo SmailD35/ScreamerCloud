@@ -27,6 +27,10 @@ int main(int argc, char **argv)
 	{
 		std::cout << it.first << " : " << it.second << std::endl;
 	}
+
+	auto * F = new InFile("/home/keith/java_error_in_CLION_7736.log");
+	Client.SendFile(F);
+
 	std::cout << "end" << std::endl;
 	return 0;
 }

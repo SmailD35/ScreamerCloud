@@ -75,14 +75,15 @@ int ClientNetwork::SendFile(InFile * file_obj)
 {
 	int file_size = file_obj->GetSize();
 	int send_bytes = 0;
+	std::array<char, chunkSize> buf;
+	buf.fill('\0');
 
 	for (int i = 0; send_bytes < file_size; ++i)
 	{
-		buf_send.clear();
-		buf_send = file_obj->GetNextChunk();
-		if (buf_send.empty())
-			return 1;
-		send_bytes += Send(1024);
+		buf = file_obj->GetNextChunk();
+		/*if (buf.empty())
+			return 1;*/
+		send_bytes += boost::asio::write(*_socket, boost::asio::buffer(buf));
 	}
 	return 0;
 };
@@ -91,12 +92,23 @@ int ClientNetwork::RecvFile(OutFile * file_obj)
 {
 	int file_size = file_obj->GetSize();
 	int recv_bytes = 0;
+	std::array<char, chunkSize> buf;
+	buf.fill('\0');
 
 	for (int i = 0; recv_bytes < file_size; ++i)
 	{
-		buf_send.clear();
-		recv_bytes += Recv();
-		file_obj->SetNextChunk(buf_recv);
+		try
+		{
+			boost::asio::read(*_socket, boost::asio::buffer(buf, chunkSize));
+		}
+		catch(std::exception& e)
+		{
+			cout << e.what() << endl;
+		}
+		//memcpy(&buf[0], boost::asio::buffer_cast<const void*>(buf_s.data()), buf_s.size());
+		recv_bytes += buf.size();
+
+		file_obj->SetNextChunk(buf);
 	}
 	return 0;
 };

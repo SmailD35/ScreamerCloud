@@ -18,6 +18,10 @@ int main(int argc, char** argv)
 		}
 		std::cout << "end" << std::endl;
 		C.SendMsg(*map);
+		auto * F = new OutFile(2349, "/home/keith/recv", "smth.log");
+		C.RecvFile(F);
+		std::cout << "end" << std::endl;
+
 	//}
 	return 0;
 }
