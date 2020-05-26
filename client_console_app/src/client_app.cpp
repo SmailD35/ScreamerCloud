@@ -119,7 +119,7 @@ int ClientApp::UploadFile()
 	{
 		cout << "Uploading file...\n";
 		thread progressBar(&ClientApp::PrintProgress, this, consoleWidth);
-		_clientNetwork->SendFile(reinterpret_cast<InFile&>(_file));
+		_clientNetwork->SendFile(dynamic_cast<InFile*>(_file));
 		progressBar.join();
 		return 0;
 	}
@@ -137,10 +137,10 @@ int ClientApp::DownloadFile()
 	Request();
 	if (ValidateResponse())
 	{
-		_file = new OutFile(stoi(_serverResponse["file_size"]) ,_clientRequest["download_directory"]);
+		_file = new OutFile(stoi(_serverResponse["file_size"]) ,_clientRequest["download_directory"], _clientRequest["file_name"]);
 		cout << "Downloading file...\n";
 		thread progressBar(&ClientApp::PrintProgress, this, consoleWidth);
-		_clientNetwork->RecvFile(reinterpret_cast<OutFile&>(_file));
+		_clientNetwork->RecvFile(dynamic_cast<OutFile*>(_file));
 		progressBar.join();
 		return 0;
 	}
