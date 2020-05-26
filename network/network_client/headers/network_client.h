@@ -34,9 +34,9 @@ protected:
 	std::string buf_recv;
 
 private:
-	int Serialize(std::map<std::string, std::string> &client_query);
+	void Serialize(std::map<std::string, std::string> &client_query);
 	std::map<std::string, std::string> * Deserialize(int buf_size);
-	size_t Send(int buf_size);
+	size_t Send();
 	size_t Recv();
 
 public:

@@ -12,7 +12,7 @@ ClientNetwork::ClientNetwork(const string& IP, int port)
 	_socket->connect(ep);
 };
 
-std::size_t ClientNetwork::Send(int buf_size)
+std::size_t ClientNetwork::Send()
 {
 	return boost::asio::write(*_socket, boost::asio::buffer(buf_send));
 };
@@ -34,7 +34,7 @@ std::size_t ClientNetwork::Recv()
 	return buf_size;
 };
 
-int ClientNetwork::Serialize(map<string, string> &client_query)
+void ClientNetwork::Serialize(map<string, string> &client_query)
 {
 	std::stringstream ss;
 	boost::archive::text_oarchive oarch(ss);
@@ -55,10 +55,8 @@ map<string, string> * ClientNetwork::Deserialize(int buf_size)
 
 void ClientNetwork::SendMsg(map<string, string> &client_query)
 {
-	int msg_size = Serialize(client_query);
-	if(msg_size <= 0)
-		return;
-	Send(msg_size);
+	Serialize(client_query);
+	Send();
 };
 
 map<string, string> * ClientNetwork::RecvMsg()
@@ -78,7 +76,7 @@ int ClientNetwork::SendFile(InFile * file_obj)
 	std::array<char, chunkSize> buf;
 	buf.fill('\0');
 
-	for (int i = 0; send_bytes < file_size; ++i)
+	for (; send_bytes < file_size;)
 	{
 		buf = file_obj->GetNextChunk();
 		/*if (buf.empty())
@@ -95,7 +93,7 @@ int ClientNetwork::RecvFile(OutFile * file_obj)
 	std::array<char, chunkSize> buf;
 	buf.fill('\0');
 
-	for (int i = 0; recv_bytes < file_size; ++i)
+	for (; recv_bytes < file_size;)
 	{
 		try
 		{

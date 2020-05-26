@@ -49,7 +49,7 @@ ConnectionNetwork::ConnectionNetwork(io::ip::tcp::socket *sock)
 	socket = std::move(sock);
 };
 
-size_t ConnectionNetwork::Send(int buf_size)
+size_t ConnectionNetwork::Send()
 {
 	return boost::asio::write(*socket, boost::asio::buffer(_buf_send));
 };
@@ -72,7 +72,7 @@ size_t ConnectionNetwork::Recv()
 	return buf_size;
 };
 
-int ConnectionNetwork::Serialize(map<string, string> &server_answer)
+void ConnectionNetwork::Serialize(map<string, string> &server_answer)
 {
 	std::stringstream ss;
 	boost::archive::text_oarchive oarch(ss);
@@ -93,10 +93,8 @@ map<string, string> * ConnectionNetwork::Deserialize(int buf_size)
 
 void ConnectionNetwork::SendMsg(map<string, string> &server_answer)
 {
-	int msg_size = Serialize(server_answer);
-	if(msg_size <= 0)
-		return;
-	Send(msg_size);
+	Serialize(server_answer);
+	Send();
 };
 
 map<string, string> * ConnectionNetwork::RecvMsg()
@@ -113,7 +111,7 @@ int ConnectionNetwork::SendFile(InFile * file_obj)
 	std::array<char, chunkSize> buf;
 	buf.fill('\0');
 
-	for (int i = 0; send_bytes < file_size; ++i)
+	for (; send_bytes < file_size;)
 	{
 		buf = file_obj->GetNextChunk();
 		/*if (buf.empty())
@@ -130,7 +128,7 @@ int ConnectionNetwork::RecvFile(OutFile * file_obj)
 	std::array<char, chunkSize> buf;
 	buf.fill('\0');
 
-	for (int i = 0; recv_bytes < file_size; ++i)
+	for (; recv_bytes < file_size;)
 	{
 		try
 		{
