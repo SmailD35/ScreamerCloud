@@ -4,12 +4,18 @@
 #include <string>
 #include <fstream>
 #include <cmath>
+#include <array>
+#include <iostream>
+#include <sys/stat.h>
+
+const size_t chunkSize = 1024;
 
 class File
 {
  public:
 	virtual ~File() = default;
 	std::string GetHash();
+	size_t GetChunksCount();
 	void ResetChunks();
 	int GetProgress();
 	int CalculateHash();
@@ -17,7 +23,6 @@ class File
 
  protected:
 	std::string _hashSum;
-	size_t _chunkSize = 1;
 	size_t _size = 0;
 	size_t _chunksCurrent = 0;
 	size_t _chunksCount = 0;
@@ -27,9 +32,9 @@ class File
 class OutFile : public File
 {
  public:
-	OutFile(size_t size, std::string fileDirectory, std::string fileName, size_t chunkSize = 1024);
+	OutFile(size_t size, std::string fileDirectory, std::string fileName);
 	~OutFile() override;
-	void SetNextChunk(std::string buf);
+	void SetNextChunk(std::array<char, chunkSize> buf);
 	size_t GetSize() override;
 
  private:
@@ -39,9 +44,9 @@ class OutFile : public File
 class InFile : public File
 {
  public:
-	explicit InFile(std::string filePath, size_t chunkSize = 1024);
+	explicit InFile(std::string filePath);
 	~InFile() override;
-	std::string GetNextChunk();
+	std::array<char, chunkSize> GetNextChunk();
 	size_t GetSize() override;
 
  private:

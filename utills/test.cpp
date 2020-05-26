@@ -6,15 +6,18 @@
 
 int main()
 {
-	auto* outFile = new OutFile(17, "azaz.txt");
-	std::string buf("Hello world!");
-	outFile->SetNextChunk(buf);
-	delete outFile;
+	auto* outFile = new OutFile(12530671, "azaz", "video.mkv");
+	InFile inFile("/home/egor/Видео/angl-2020-04-27_23.03.52.mkv");
 
-	InFile inFile("azaz.txt", 4);
-	std::cout << inFile.GetNextChunk();
-	std::cout << inFile.GetNextChunk();
-	std::cout << inFile.GetNextChunk();
-	std::cout << inFile.GetNextChunk();
-	std::cout << inFile.GetNextChunk();
+	std::array<char, chunkSize> buffer;
+	buffer.fill('\0');
+	
+	size_t chunksCount = inFile.GetChunksCount();
+	for (size_t i = 0; i < chunksCount; i++)
+	{
+		buffer = inFile.GetNextChunk();
+		outFile->SetNextChunk(buffer);
+	}
+
+	delete outFile;
 }
