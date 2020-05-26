@@ -131,7 +131,7 @@ int DatabaseWrapper::AddFileRecord(const string &file_name, const string &dir_na
         BOOST_LOG_TRIVIAL(fatal) << exc.what();
     }
 
-    int file_ID = std::hash<std::string>{}(file_name + dir_name);
+    int file_ID = std::hash<std::string>{}(to_string(_userID) + file_name + dir_name);
     std::string hash = std::to_string(file_ID);
 
     std::string query = "INSERT INTO files_data VALUES (" + std::to_string(_userID) + ", '" + dir_name + "' , '" + file_name + "', " + hash_sum + ", " + hash + ")";
@@ -204,7 +204,7 @@ shared_ptr<PGconn> DatabaseWrapper::GetConnection(DBType db_type) {
 
 void DatabaseWrapper::GetFilesDBInfo() {
     pt::ptree root;
-    pt::read_json("../../config.json", root);
+    pt::read_json("../config.json", root);
 
     string  info;
 
@@ -218,7 +218,7 @@ void DatabaseWrapper::GetFilesDBInfo() {
 
 void DatabaseWrapper::GetUsersDBInfo() {
     pt::ptree root;
-    pt::read_json("../../config.json", root);
+    pt::read_json("../config.json", root);
 
     string info;
 
@@ -296,12 +296,3 @@ void DatabaseWrapper::DeleteAllFiles() {
     else
         return;
 }
-
-void DatabaseWrapper::SetUsersStoragePath(const string &path) {
-    _users_storage_path = path;
-}
-
-std::string DatabaseWrapper::GetUsersStoragePath() {
-    return _users_storage_path;
-}
-

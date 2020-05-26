@@ -13,7 +13,6 @@ FilesDatabaseManager::FilesDatabaseManager() {
     _userDirectory = "";
     _databaseConnection = DatabaseWrapper();
     SetPathToUsersStorage();
-    _databaseConnection.SetUsersStoragePath(_path_users_storage);
 }
 
 void FilesDatabaseManager::SetUserID(int userID) {
@@ -51,8 +50,8 @@ bool FilesDatabaseManager::UploadFile(const string &file_name, const string &dir
        // boost::filesystem::ofstream( _path_users_storage + _userDirectory + to_string(file_ID));
 
         /////раскоментировать при соединении программы с свервером
-        fs::path path_to_file(_path_users_storage + file_name);
-        fs::path new_path(_path_users_storage + _userDirectory + to_string(file_ID));
+        fs::path path_to_file(_path_users_storage + '/' + _userDirectory + '/' + file_name);
+        fs::path new_path(_path_users_storage + '/' + _userDirectory + '/' + to_string(file_ID));
         rename(path_to_file, new_path);
         return true;
     }

@@ -5,10 +5,12 @@
 #include "../inc/users_database_manager.h"
 using namespace std;
 namespace fs = boost::filesystem;
+namespace pt = boost::property_tree;
 
 UsersDatabaseManager::UsersDatabaseManager() {
     _userID = NIL;
     _databaseConnection = DatabaseWrapper();
+    SetPathToUsersStorage();
 }
 
 int UsersDatabaseManager::RegisterUser(string const& login, string const& password) {
@@ -21,7 +23,7 @@ int UsersDatabaseManager::RegisterUser(string const& login, string const& passwo
                 _userID = add_result;
                 _databaseConnection.SetUserID(add_result);
 
-                fs::create_directory(_databaseConnection.GetUsersStoragePath() + to_string(add_result));
+				fs::create_directory(_path_users_storage + '/' + to_string(add_result));
                 return _userID;
             }
             catch (exception &exc) {
@@ -63,7 +65,7 @@ bool UsersDatabaseManager::DeleteUser(const string &login, const string &passwor
                 _databaseConnection.DeleteUserRecord(userID);
                 try {
                     _databaseConnection.DeleteAllFiles();
-                    fs::remove(_databaseConnection.GetUsersStoragePath() + to_string(userID));
+                    fs::remove(_path_users_storage + '/' + to_string(userID));
                 }
                 catch (exception &exc) {
                     BOOST_LOG_TRIVIAL(error) << exc.what();
@@ -83,4 +85,15 @@ bool UsersDatabaseManager::DeleteUser(const string &login, const string &passwor
         BOOST_LOG_TRIVIAL(debug) << exc.what();
         return false;
     }
+}
+
+void UsersDatabaseManager::SetPathToUsersStorage() {
+	////считываем из конфига путь к хранящимся файлам пользователей
+	pt::ptree root;
+	pt::read_json("../config.json", root);
+	string users_path = root.get<string>("users_storage");
+
+	if (!fs::exists(users_path))
+		fs::create_directory(users_path);
+	_path_users_storage = users_path;
 }

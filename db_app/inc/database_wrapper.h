@@ -61,10 +61,6 @@ public:
 
     void SetUserID(int userID);
 
-    void SetUsersStoragePath(const std::string &path);
-
-    std::string GetUsersStoragePath();
-
     int CheckUserID(const std::string &login, const std::string &password);
 
     int AddUserRecord(const std::string &login, const std::string &password);
