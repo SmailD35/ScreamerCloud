@@ -40,7 +40,6 @@ void ClientNetwork::Serialize(map<string, string> &client_query)
 	boost::archive::text_oarchive oarch(ss);
 	oarch << client_query;
 	buf_send = ss.str();
-	cout << buf_send << endl;
 };
 
 map<string, string> * ClientNetwork::Deserialize(int buf_size)
@@ -79,8 +78,6 @@ int ClientNetwork::SendFile(InFile * file_obj)
 	for (; send_bytes < file_size;)
 	{
 		buf = file_obj->GetNextChunk();
-		/*if (buf.empty())
-			return 1;*/
 		send_bytes += boost::asio::write(*_socket, boost::asio::buffer(buf));
 	}
 	return 0;
@@ -103,7 +100,6 @@ int ClientNetwork::RecvFile(OutFile * file_obj)
 		{
 			cout << e.what() << endl;
 		}
-		//memcpy(&buf[0], boost::asio::buffer_cast<const void*>(buf_s.data()), buf_s.size());
 		recv_bytes += buf.size();
 
 		file_obj->SetNextChunk(buf);
