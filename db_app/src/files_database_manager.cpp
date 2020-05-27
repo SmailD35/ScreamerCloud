@@ -42,7 +42,7 @@ void FilesDatabaseManager::SetUserDirectory(string userDirectory) {
 //}
 
 std::shared_ptr<InFile> FilesDatabaseManager::GetFilePtr(int file_ID) {
-    string path = _path_users_storage + _userDirectory + to_string(file_ID);
+	string path = _path_users_storage + '/' + _userDirectory + '/' + to_string(file_ID);
     shared_ptr<InFile> in_file = make_shared<InFile>(path);
 	return in_file;
 }
@@ -99,7 +99,7 @@ bool FilesDatabaseManager::DeleteFile(const string &file_name, const string &dir
 
     try {
         _databaseConnection.DeleteFileRecord(fileID);
-        fs::remove(_path_users_storage + _userDirectory + to_string(fileID));
+        fs::remove(_path_users_storage + '/' + _userDirectory + '/' + to_string(fileID));
         return true;
     }
     catch (exception &exc) {
