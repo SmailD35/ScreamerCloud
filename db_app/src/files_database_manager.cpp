@@ -41,13 +41,17 @@ void FilesDatabaseManager::SetUserDirectory(string userDirectory) {
 //    return fp;
 //}
 
-shared_ptr<ifstream> FilesDatabaseManager::GetFileStream(int file_ID) {
-	string path_to_file = _path_users_storage + _userDirectory + to_string(file_ID);
+std::shared_ptr<InFile> FilesDatabaseManager::GetFilePtr(int file_ID) {
+    string path = _path_users_storage + _userDirectory + to_string(file_ID);
+    shared_ptr<InFile> in_file = make_shared<InFile>(path);
+
+	/*string path_to_file = _path_users_storage + _userDirectory + to_string(file_ID);
 
 	shared_ptr<ifstream> fp = make_shared<ifstream>(path_to_file, ifstream::in);
 	if (!fp->is_open())
 		BOOST_LOG_TRIVIAL(error) << "Can't get file stream of " + to_string(file_ID);
-	return fp;
+	return fp;*/
+	return in_file;
 }
 
 bool FilesDatabaseManager::UploadFile(const string &file_name, const string &dir_name, const string &hash_sum) {
@@ -74,7 +78,7 @@ bool FilesDatabaseManager::UploadFile(const string &file_name, const string &dir
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////тут продумать систему кодов ошибок (можно сделать еще один аргумент функций, в который будет записываться код ошибки)
-std::shared_ptr<ifstream> FilesDatabaseManager::DownloadFile(string const& file_name, string const& dir_name) {
+std::shared_ptr<InFile> FilesDatabaseManager::DownloadFile(string const& file_name, string const& dir_name) {
 	int fileID;
 	try {
 		fileID = _databaseConnection.CheckFileID(file_name, dir_name);
@@ -84,8 +88,10 @@ std::shared_ptr<ifstream> FilesDatabaseManager::DownloadFile(string const& file_
 		return nullptr;
 	}
 
-	shared_ptr<ifstream> file(GetFileStream(fileID));
-	return file;
+/*	shared_ptr<ifstream> file(GetFilePtr(fileID));
+	return file;*/
+    shared_ptr<InFile> in_file = GetFilePtr(fileID);
+    return in_file;
 }
 
 bool FilesDatabaseManager::DeleteFile(const string &file_name, const string &dir_name) {

@@ -17,7 +17,7 @@ private:
 
     void SetPathToUsersStorage();
 
-	std::shared_ptr <std::ifstream> GetFileStream(int file_ID);
+	std::shared_ptr<InFile> GetFilePtr(int file_ID);
 
     DatabaseWrapper _databaseConnection;
 public:
@@ -35,7 +35,7 @@ public:
 
     bool UploadFile(const std::string &file_name, const std::string &dir_name, const std::string &hash_sum);
 
-	std::shared_ptr<std::ifstream> DownloadFile(const std::string &file_name, const std::string &dir_name);
+	std::shared_ptr<InFile> DownloadFile(const std::string &file_name, const std::string &dir_name);
 
     bool DeleteFile(const std::string &file_name, const std::string &dir_name);
 

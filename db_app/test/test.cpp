@@ -129,12 +129,12 @@ TEST_F(TestFileWork, test_succesful_add_files) {
     EXPECT_TRUE(upload);
 }
 
-/** Тест на удачное скачивание файла **/
+/** Тест на удачное скачивание файла **//*
 TEST_F(TestFileWork, test_succesful_download_files) {
     shared_ptr<FILE> download = _mng.Download(_file_name, _dir_name);
     //EXPECT_EQ(download, true);
     EXPECT_TRUE(download);
-}
+}*/
 
 /** Тест на неуспешное добавление файла (уже существует) **/
 TEST_F(TestFileWork, test_failing_adding_files) {
@@ -143,11 +143,11 @@ TEST_F(TestFileWork, test_failing_adding_files) {
 }
 
 /** Тест на неудачное скачивание файла (неверное имя файла) **/
-TEST_F(TestFileWork, test_failing_download_files) {
+/*TEST_F(TestFileWork, test_failing_download_files) {
     shared_ptr<FILE> download = _mng.Download(_wrong_file_name, _dir_name);
     //EXPECT_EQ(download, false);
     EXPECT_FALSE(download);
-}
+}*/
 
 /** Тест на неудачное удаление файла (неверное имя файла) **/
 TEST_F(TestDeletings, test_failing_delete_files) {
