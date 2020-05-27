@@ -25,8 +25,8 @@ void ClientApp::ParseCmdArguments(int argc, char** argv)
 	po::options_description desc("Allowed options");
 	desc.add_options()
 		("help,h", "produce help message")
-		("upload,u", po::value<vector<fs::path>>()->multitoken(), "upload file")
-		("download,d", po::value<vector<fs::path>>()->multitoken(), "download file")
+		("upload,u", po::value<vector<std::string>>()->multitoken(), "upload file")
+		("download,d", po::value<vector<std::string>>()->multitoken(), "download file")
 		("delete", po::value<fs::path>(), "delete file from cloud storage")
 		//("list,l", po::value<std::string>()->default_value(string("/")), "list files in 'arg' directory")
 		("register", "register new user")
@@ -42,8 +42,8 @@ void ClientApp::ParseCmdArguments(int argc, char** argv)
 	}
 
 	if (vm.count("upload")) {
-		_filePath = vm["upload"].as<vector<fs::path>>()[0];
-		fs::path serverPath = vm["upload"].as<vector<fs::path>>()[1];
+		_filePath = fs::path(vm["upload"].as<vector<string>>()[0]);//vm["upload"].as<vector<fs::path>>()[0];
+		fs::path serverPath(vm["upload"].as<vector<string>>()[1]);
 		_clientRequest["cmd_code"] = to_string(UPLOAD);
 		_clientRequest["file_name"] = serverPath.filename().string();
 		_clientRequest["file_directory"] = serverPath.parent_path().string();
@@ -51,8 +51,8 @@ void ClientApp::ParseCmdArguments(int argc, char** argv)
 	}
 
 	if (vm.count("download")) {
-		fs::path serverPath = vm["download"].as<vector<fs::path>>()[0];
-		_filePath = vm["download"].as<vector<fs::path>>()[1];
+		fs::path serverPath(vm["download"].as<vector<string>>()[0]);
+		_filePath = fs::path(vm["download"].as<vector<string>>()[1]);
 		_clientRequest["cmd_code"] = to_string(DOWNLOAD);
 		_clientRequest["file_name"] = serverPath.filename().string();
 		_clientRequest["file_directory"] = serverPath.parent_path().string();
