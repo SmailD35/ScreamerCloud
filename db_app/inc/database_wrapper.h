@@ -23,7 +23,7 @@ extern "C"
 #include <boost/lexical_cast.hpp>
 
 #include <regex>
-
+#include "file.h"
 #include "logging.hpp"
 
 enum Msg{
