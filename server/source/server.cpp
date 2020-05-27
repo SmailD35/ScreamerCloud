@@ -48,15 +48,19 @@ Command* Server::CreateCommand(UserSession userSession)
 		switch (stoi(query["cmd_code"]))
 		{
 		case UPLOAD:
-			newCommand = new SendFileCommand(userSession);
+			newCommand = new UploadFileCommand(userSession);
 			break;
 
 		case DOWNLOAD:
-			newCommand = new RecvFileCommand(userSession);
+			newCommand = new DownloadFileCommand(userSession);
 			break;
 
-		case DELETE:
-			newCommand = new DeleteCommand(userSession);
+		case DELETE_FILE:
+			newCommand = new DeleteFileCommand(userSession);
+			break;
+
+		case DELETE_USER:
+			newCommand = new DeleteUserCommand(userSession);
 			break;
 
 		case LIST:
