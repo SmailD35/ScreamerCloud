@@ -56,8 +56,6 @@ bool DatabaseManager::Upload(const string &file_name, const string &dir_name, co
 }
 
 shared_ptr<InFile> DatabaseManager::Download(const string &file_name, const string &dir_name) {
-	/*shared_ptr<ifstream> file(_filesDatabaseManager.DownloadFile(file_name, dir_name));
-	return file;*/
 	shared_ptr<InFile> file = _filesDatabaseManager.DownloadFile(file_name, dir_name);
 	return file;
 }

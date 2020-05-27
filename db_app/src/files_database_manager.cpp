@@ -44,13 +44,6 @@ void FilesDatabaseManager::SetUserDirectory(string userDirectory) {
 std::shared_ptr<InFile> FilesDatabaseManager::GetFilePtr(int file_ID) {
     string path = _path_users_storage + _userDirectory + to_string(file_ID);
     shared_ptr<InFile> in_file = make_shared<InFile>(path);
-
-	/*string path_to_file = _path_users_storage + _userDirectory + to_string(file_ID);
-
-	shared_ptr<ifstream> fp = make_shared<ifstream>(path_to_file, ifstream::in);
-	if (!fp->is_open())
-		BOOST_LOG_TRIVIAL(error) << "Can't get file stream of " + to_string(file_ID);
-	return fp;*/
 	return in_file;
 }
 
@@ -88,8 +81,6 @@ std::shared_ptr<InFile> FilesDatabaseManager::DownloadFile(string const& file_na
 		return nullptr;
 	}
 
-/*	shared_ptr<ifstream> file(GetFilePtr(fileID));
-	return file;*/
     shared_ptr<InFile> in_file = GetFilePtr(fileID);
     return in_file;
 }
