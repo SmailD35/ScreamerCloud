@@ -38,13 +38,16 @@ class ClientApp
 	int UploadFile();
 	int DownloadFile();
 	int DeleteFile();
+	int DeleteUser();
 	int List();
 	int RegisterUser();
 	int LoginUser();
 	void Request();
 	bool ValidateResponse();
 	void PrintProgress(int outputWidth = 50);
-	void ReadConfig(std::string configPath = "../client_conf.json");
+	void PrintFileList(std::map<std::string, std::string> list);
+	void ReadUserConfig(std::string configPath = "../client_conf.json");
+	void WriteUserConfig(std::string configPath = "../client_conf.json");
 
  private:
 	std::string _currentDirectory;

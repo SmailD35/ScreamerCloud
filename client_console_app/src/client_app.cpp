@@ -11,7 +11,7 @@ ClientApp::ClientApp(string IP, int port)
 {
 	_clientNetwork = new ClientNetwork(IP, port);
 	_file = nullptr;
-	ReadConfig();
+	ReadUserConfig();
 }
 
 ClientApp::~ClientApp()
@@ -28,7 +28,8 @@ void ClientApp::ParseCmdArguments(int argc, char** argv)
 		("upload,u", po::value<vector<string>>()->multitoken(), "upload file")
 		("download,d", po::value<vector<string>>()->multitoken(), "download file")
 		("delete", po::value<string>(), "delete file from cloud storage")
-		//("list,l", po::value<string>()->default_value(string("/")), "list files in 'arg' directory")
+		("delete-user", "delete user and all his files from cloud storage")
+		("list,l", po::value<string>(), "list files in 'arg' directory")
 		("register", "register new user")
 		("login", "authorize");
 
@@ -61,15 +62,20 @@ void ClientApp::ParseCmdArguments(int argc, char** argv)
 
 	if (vm.count("delete")) {
 		fs::path serverPath(vm["delete"].as<string>());
-		_clientRequest["cmd_code"] = to_string(DELETE);
+		_clientRequest["cmd_code"] = to_string(DELETE_FILE);
 		_clientRequest["file_name"] = serverPath.filename().string();
 		_clientRequest["file_directory"] = serverPath.parent_path().string();
 		return;
 	}
 
+	if (vm.count("delete-user")) {
+		_clientRequest["cmd_code"] = to_string(DELETE_USER);
+		return;
+	}
+
 	if (vm.count("list")) {
 		_clientRequest["cmd_code"] = to_string(LIST);
-		_clientRequest["path"] = vm["list"].as<std::string>();
+		_clientRequest["directory"] = vm["list"].as<std::string>();
 		return;
 	}
 
@@ -94,8 +100,10 @@ int ClientApp::ExecuteRequest()
 		return UploadFile();
 	case DOWNLOAD:
 		return DownloadFile();
-	case DELETE:
+	case DELETE_FILE:
 		return DeleteFile();
+	case DELETE_USER:
+		return DeleteUser();
 	case LIST:
 		return List();
 	case REGISTER:
@@ -128,7 +136,7 @@ int ClientApp::UploadFile()
 		thread progressBar(&ClientApp::PrintProgress, this, consoleWidth);
 		_clientNetwork->SendFile(dynamic_cast<InFile*>(_file));
 		progressBar.join();
-		cout << "Uploading success!\n";
+		cout << "Upload success\n";
 		return 0;
 	}
 	return -1;
@@ -156,7 +164,7 @@ int ClientApp::DownloadFile()
 		thread progressBar(&ClientApp::PrintProgress, this, consoleWidth);
 		_clientNetwork->RecvFile(dynamic_cast<OutFile*>(_file));
 		progressBar.join();
-		cout << "Download success!\n";
+		cout << "Download success\n";
 		return 0;
 	}
 	return -1;
@@ -186,10 +194,48 @@ int ClientApp::DeleteFile()
 	}
 }
 
+int ClientApp::DeleteUser()
+{
+	if (!_user.IsLoggedIn())
+	{
+		cout << "You are not logged in" << endl;
+		return -1;
+	}
+	_clientRequest["username"] = _user.login;
+	_clientRequest["password"] = _user.password;
+	_clientRequest["error_code"] = "0";
+
+	Request();
+	if (ValidateResponse())
+	{
+		cout << "User deleted successfully" << endl;
+		return 0;
+	}
+	else
+	{
+		cout << "Delete user failed" << endl;
+		return -1;
+	}
+}
+
 int ClientApp::List()
 {
+	if (!_user.IsLoggedIn())
+	{
+		cout << "You are not logged in" << endl;
+		return -1;
+	}
+	_clientRequest["username"] = _user.login;
+	_clientRequest["password"] = _user.password;
+	_clientRequest["error_code"] = "0";
+
 	Request();
-	ValidateResponse();
+	if (ValidateResponse())
+	{
+		map<string, string>* list = _clientNetwork->RecvMsg();
+		PrintFileList(*list);
+	}
+
 	// TODO:: вывод списка файлов
 }
 
@@ -203,6 +249,9 @@ int ClientApp::RegisterUser()
 	cin >> password;
 	cout << endl;
 
+	_user.login = username;
+	_user.password = password;
+
 	_clientRequest["username"] = username;
 	_clientRequest["password"] = password;
 	_clientRequest["error_code"] = "0";
@@ -211,6 +260,7 @@ int ClientApp::RegisterUser()
 	if (ValidateResponse())
 	{
 		cout << "Registration success\n";
+		WriteUserConfig();
 		return 0;
 	}
 	else
@@ -230,14 +280,19 @@ int ClientApp::LoginUser()
 	cin >> password;
 	cout << endl;
 
+	_user.login = username;
+	_user.password = password;
+
 	_clientRequest["username"] = username;
 	_clientRequest["password"] = password;
+	_clientRequest["cmd_code"] = to_string(LOGIN);
 	_clientRequest["error_code"] = "0";
 
 	Request();
 	if (ValidateResponse())
 	{
 		cout << "Login success\n";
+		WriteUserConfig();
 		return 0;
 	}
 	else
@@ -281,26 +336,51 @@ void ClientApp::PrintProgress(int outputWidth)
 	cout << endl;
 }
 
-void ClientApp::ReadConfig(string configPath)
+void ClientApp::PrintFileList(map<string, string> list)
+{
+	for (auto const& x : list)
+	{
+		if (x.second == "dir")
+			cout << x.first << '/' <<endl;
+		else
+			cout << x.first << endl;
+	}
+}
+
+void ClientApp::ReadUserConfig(string configPath)
 {
 	pt::ptree root;
-	pt::read_json(configPath, root);
+	try
+	{
+		pt::read_json(configPath, root);
+		string info;
+		for (pt::ptree::value_type& values : root.get_child("user"))
+		{
+			if (values.first == "username")
+				_user.login = values.second.data();
+			if (values.first == "password")
+				_user.password = values.second.data();
+		}
+	}
+	catch (std::exception &exc)
+	{
+		LoginUser();
+	}
+}
+
+void ClientApp::WriteUserConfig(string configPath)
+{
+	pt::ptree root;
 
 	string  info;
+	root.put("user.username", _user.login);
+	root.put("user.password", _user.password);
 
-	for (pt::ptree::value_type &values : root.get_child("user"))
-	{
-		if (values.first == "username")
-			_user.login = values.second.data();
-		if (values.first == "password")
-			_user.password = values.second.data();
-	}
+	pt::write_json(configPath, root);
+	exit(0);
 }
 
 bool User::IsLoggedIn()
 {
-	if (login != "" && password != "")
-		return true;
-	else
-		return false;
+	return !login.empty() && !password.empty();
 }

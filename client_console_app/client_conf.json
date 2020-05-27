@@ -1,7 +1,6 @@
 {
-  "user":
-  {
-    "username": "sasha",
-    "password": "1337"
-  }
+    "user": {
+        "username": "sasha",
+        "password": "1337"
+    }
 }
