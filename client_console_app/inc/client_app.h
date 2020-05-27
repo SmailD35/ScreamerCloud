@@ -10,11 +10,13 @@
 #include <chrono>
 #include <boost/program_options.hpp>
 #include <boost/property_tree/json_parser.hpp>
+#include <boost/filesystem.hpp>
 #include "file.h"
 #include "network_client.h"
 
 namespace po = boost::program_options;
 namespace pt = boost::property_tree;
+namespace fs = boost::filesystem;
 
 const int consoleWidth = 50;
 
@@ -48,6 +50,7 @@ class ClientApp
 	std::string _currentDirectory;
 	User _user;
 	File* _file;
+	fs::path _filePath;
 	std::map <std::string,std::string> _clientRequest;
 	std::map <std::string,std::string> _serverResponse;
 	ClientNetwork* _clientNetwork;

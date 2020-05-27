@@ -5,7 +5,7 @@ set(CMAKE_CXX_STANDARD 14)
 enable_testing()
 add_subdirectory(tests)
 
-find_package( Boost REQUIRED COMPONENTS program_options )
+find_package( Boost REQUIRED COMPONENTS program_options filesystem)
 include_directories(inc tests/inc ../network/network_client/headers ../utills ${Boost_INCLUDE_DIRS})
 link_directories(../network/cmake-build-debug ../utills/cmake-build-debug)
 

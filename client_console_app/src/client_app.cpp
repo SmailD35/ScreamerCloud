@@ -25,9 +25,9 @@ void ClientApp::ParseCmdArguments(int argc, char** argv)
 	po::options_description desc("Allowed options");
 	desc.add_options()
 		("help,h", "produce help message")
-		("upload,u", po::value<vector<std::string>>()->multitoken(), "upload file")
-		("download,d", po::value<vector<std::string>>()->multitoken(), "download file")
-		("delete", po::value<std::string>(), "delete file from cloud storage")
+		("upload,u", po::value<vector<fs::path>>()->multitoken(), "upload file")
+		("download,d", po::value<vector<fs::path>>()->multitoken(), "download file")
+		("delete", po::value<fs::path>(), "delete file from cloud storage")
 		//("list,l", po::value<std::string>()->default_value(string("/")), "list files in 'arg' directory")
 		("register", "register new user")
 		("login", "authorize");
@@ -42,22 +42,28 @@ void ClientApp::ParseCmdArguments(int argc, char** argv)
 	}
 
 	if (vm.count("upload")) {
+		_filePath = vm["upload"].as<vector<fs::path>>()[0];
+		fs::path serverPath = vm["upload"].as<vector<fs::path>>()[1];
 		_clientRequest["cmd_code"] = to_string(UPLOAD);
-		_clientRequest["file_name"] = vm["upload"].as<vector<std::string>>()[0];
-		_clientRequest["upload_directory"] = vm["upload"].as<vector<std::string>>()[1];
+		_clientRequest["file_name"] = serverPath.filename().string();
+		_clientRequest["file_directory"] = serverPath.parent_path().string();
 		return;
 	}
 
 	if (vm.count("download")) {
+		fs::path serverPath = vm["download"].as<vector<fs::path>>()[0];
+		_filePath = vm["download"].as<vector<fs::path>>()[1];
 		_clientRequest["cmd_code"] = to_string(DOWNLOAD);
-		_clientRequest["file_name"] = vm["download"].as<vector<std::string>>()[0];
-		_clientRequest["download_directory"] = vm["download"].as<vector<std::string>>()[1];
+		_clientRequest["file_name"] = serverPath.filename().string();
+		_clientRequest["file_directory"] = serverPath.parent_path().string();
 		return;
 	}
 
 	if (vm.count("delete")) {
+		fs::path serverPath = vm["delete"].as<fs::path>();
 		_clientRequest["cmd_code"] = to_string(DELETE);
-		_clientRequest["file_name"] = vm["delete"].as<std::string>();
+		_clientRequest["file_name"] = serverPath.filename().string();
+		_clientRequest["file_directory"] = serverPath.parent_path().string();
 		return;
 	}
 
@@ -103,12 +109,13 @@ int ClientApp::ExecuteRequest()
 
 int ClientApp::UploadFile()
 {
+	// TODO: добавить проверку на существование файла
 	if (!_user.IsLoggedIn())
 	{
 		cout << "You are not logged in" << endl;
 		return -1;
 	}
-	_file = new InFile(_clientRequest["file_name"]);
+	_file = new InFile(_filePath.string());
 	_clientRequest["username"] = _user.login;
 	_clientRequest["password"] = _user.password;
 	_clientRequest["file_size"] = to_string(_file->GetSize());
@@ -121,6 +128,7 @@ int ClientApp::UploadFile()
 		thread progressBar(&ClientApp::PrintProgress, this, consoleWidth);
 		_clientNetwork->SendFile(dynamic_cast<InFile*>(_file));
 		progressBar.join();
+		cout << "Uploading success!\n";
 		return 0;
 	}
 	return -1;
@@ -133,15 +141,22 @@ int ClientApp::DownloadFile()
 		cout << "You are not logged in" << endl;
 		return -1;
 	}
+	_clientRequest["username"] = _user.login;
+	_clientRequest["password"] = _user.password;
+	_clientRequest["error_code"] = "0";
 
 	Request();
 	if (ValidateResponse())
 	{
-		_file = new OutFile(stoi(_serverResponse["file_size"]) ,_clientRequest["download_directory"], _clientRequest["file_name"]);
+		stringstream sstream(_serverResponse["file_size"]);
+		size_t size = 0;
+		sstream >> size;
+		_file = new OutFile(size, _filePath.parent_path().string(), _filePath.filename().string());
 		cout << "Downloading file...\n";
 		thread progressBar(&ClientApp::PrintProgress, this, consoleWidth);
 		_clientNetwork->RecvFile(dynamic_cast<OutFile*>(_file));
 		progressBar.join();
+		cout << "Download success!\n";
 		return 0;
 	}
 	return -1;
@@ -149,8 +164,17 @@ int ClientApp::DownloadFile()
 
 int ClientApp::DeleteFile()
 {
+	if (!_user.IsLoggedIn())
+	{
+		cout << "You are not logged in" << endl;
+		return -1;
+	}
+	_clientRequest["username"] = _user.login;
+	_clientRequest["password"] = _user.password;
+	_clientRequest["error_code"] = "0";
+
 	Request();
-	if (!ValidateResponse())
+	if (ValidateResponse())
 	{
 		cout << "File deleted successfully" << endl;
 		return 0;
