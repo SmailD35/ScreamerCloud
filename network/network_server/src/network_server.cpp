@@ -117,7 +117,6 @@ int ConnectionNetwork::SendFile(const std::shared_ptr<InFile>& file_obj)
 	for (; send_bytes < file_size;)
 	{
 		buf = file_obj->GetNextChunk();
-
 		try
 		{
 			send_bytes += boost::asio::write(*socket, boost::asio::buffer(buf));

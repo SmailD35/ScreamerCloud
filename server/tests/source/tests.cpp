@@ -42,7 +42,7 @@ TEST_F(CommandsTest, register_user_test)
 
 TEST_F(CommandsTest, send_file_test)
 {
-	command = new SendFileCommand(*userSession);
+	command = new UploadFileCommand(*userSession);
 
 	invoker = new Invoker(command);
 	invoker->Do();
@@ -54,7 +54,7 @@ TEST_F(CommandsTest, send_file_test)
 
 TEST_F(CommandsTest, recv_file_test)
 {
-	command = new RecvFileCommand(*userSession);
+	command = new DownloadFileCommand(*userSession);
 
 	invoker = new Invoker(command);
 	invoker->Do();

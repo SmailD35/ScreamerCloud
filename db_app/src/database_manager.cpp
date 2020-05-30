@@ -55,9 +55,9 @@ bool DatabaseManager::Upload(const string &file_name, const string &dir_name, co
     return _filesDatabaseManager.UploadFile(file_name, dir_name, hash_sum);
 }
 
-std::shared_ptr<FILE> DatabaseManager::Download(string const& file_name, string const& dir_name) {
-    std::shared_ptr<FILE> file(_filesDatabaseManager.DownloadFile(file_name, dir_name));
-    return file;
+shared_ptr<InFile> DatabaseManager::Download(const string &file_name, const string &dir_name) {
+	shared_ptr<InFile> file = _filesDatabaseManager.DownloadFile(file_name, dir_name);
+	return file;
 }
 
 

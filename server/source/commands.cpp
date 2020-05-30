@@ -28,7 +28,7 @@ void RegisterUserCommand::Do()
 	ConnectionNetwork network = _userSession._userConnection;
 	map<string,string> query = _userSession._userQuery;
 
-	bool errorCode = dbManager.Register(query["username"], query["password"]);
+	bool errorCode = !dbManager.Register(query["username"], query["password"]);
 	query["error_code"] = to_string(errorCode);
 
 	network.SendMsg(query);
@@ -45,7 +45,7 @@ void LoginUserCommand::Do()
 	ConnectionNetwork network = _userSession._userConnection;
 	map<string,string> query = _userSession._userQuery;
 
-	bool errorCode = dbManager.Authorize(query["username"], query["password"]);
+	bool errorCode = !dbManager.Authorize(query["username"], query["password"]);
 	query["error_code"] = to_string(errorCode);
 
 	network.SendMsg(query);
@@ -56,47 +56,60 @@ void LoginUserCommand::Undo()
 
 }
 
-void SendFileCommand::Do()
+void UploadFileCommand::Do()
 {
 	DatabaseManager dbManager = _userSession._databaseManager;
 	ConnectionNetwork network = _userSession._userConnection;
 	map<string,string> query = _userSession._userQuery;
 
-	bool error = dbManager.Authorize(query["username"], query["password"]);
+	bool error = !dbManager.Authorize(query["username"], query["password"]);
 	query["error_code"] = to_string(error);
 
 	network.SendMsg(query);
 
 	if (error == 0)
 	{
-		string file_path = dbManager.GetUserDir() + query["file_name"];
-		auto file = new OutFile(stoi(query["file_size"]), file_path);
-		network.RecvFile(reinterpret_cast<OutFile&>(file));
-		error = dbManager.Upload(query["file_name"], query["upload_directory"], "");
+		string file_path = "test_dir/" + dbManager.GetUserDir();
+		stringstream sstream(query["file_size"]);
+		size_t size = 0;
+		sstream >> size;
+		auto file = new OutFile(size, file_path, query["file_name"]);
+		network.RecvFile(file);
+		delete file;
+		error = dbManager.Upload(query["file_name"], query["file_directory"], "1234");
 	}
 
-	network.SendMsg(query);
+	//network.SendMsg(query);
 	//TODO: проверить хеш-сумму
 }
 
-void SendFileCommand::Undo()
+void UploadFileCommand::Undo()
 {
 
 }
 
-void RecvFileCommand::Do()
+void DownloadFileCommand::Do()
 {
 	DatabaseManager dbManager = _userSession._databaseManager;
 	ConnectionNetwork network = _userSession._userConnection;
 	map<string,string> query = _userSession._userQuery;
 
-	shared_ptr<FILE> filePtr = dbManager.Download(query["file_name"], query["directory"]);
-	query["error_code"] = "0";
+	bool error = !dbManager.Authorize(query["username"], query["password"]);
+	shared_ptr<InFile> file = dbManager.Download(query["file_name"], query["file_directory"]);
+	query["file_size"] = to_string(file->GetSize());
+	query["error_code"] = to_string(error);
+
 	network.SendMsg(query);
-	//network.SendFile(filePtr);
+
+	if (error == 0)
+	{
+		network.SendFile(file.get());
+	}
+
+	//network.SendMsg(query);
 }
 
-void RecvFileCommand::Undo()
+void DownloadFileCommand::Undo()
 {
 
 }
@@ -107,9 +120,15 @@ void SendFileListCommand::Do()
 	ConnectionNetwork network = _userSession._userConnection;
 	map<string,string> query = _userSession._userQuery;
 
-	map<string,string> list = dbManager.GetFileList(query["directory"]);
-	//TODO: перезапись из вектора в map, или переделать функцию чтобы возвращала map
+	bool error = !dbManager.Authorize(query["username"], query["password"]);
+	query["error_code"] = to_string(error);
 	network.SendMsg(query);
+
+	if (error == 0)
+	{
+		map<string,string> list = dbManager.GetFileList(query["directory"]);
+		network.SendMsg(list);
+	}
 }
 
 void SendFileListCommand::Undo()
@@ -117,18 +136,42 @@ void SendFileListCommand::Undo()
 
 }
 
-void DeleteCommand::Do()
+void DeleteFileCommand::Do()
 {
 	DatabaseManager dbManager = _userSession._databaseManager;
 	ConnectionNetwork network = _userSession._userConnection;
 	map<string,string> query = _userSession._userQuery;
 
-	bool errorCode = dbManager.DeleteFile(query["file_name"], query["directory"]);
-	query["error_code"] = std::to_string(errorCode);
+	bool error = !dbManager.Authorize(query["username"], query["password"]);
+	if (error == 0)
+	{
+		error = !dbManager.DeleteFile(query["file_name"], query["file_directory"]);
+	}
+	query["error_code"] = to_string(error);
 	network.SendMsg(query);
 }
 
-void DeleteCommand::Undo()
+void DeleteFileCommand::Undo()
+{
+
+}
+
+void DeleteUserCommand::Do()
+{
+	DatabaseManager dbManager = _userSession._databaseManager;
+	ConnectionNetwork network = _userSession._userConnection;
+	map<string,string> query = _userSession._userQuery;
+
+	bool error = !dbManager.Authorize(query["username"], query["password"]);
+	if (error == 0)
+	{
+		error = !dbManager.DeleteUser(query["username"], query["password"]);
+	}
+	query["error_code"] = to_string(error);
+	network.SendMsg(query);
+}
+
+void DeleteUserCommand::Undo()
 {
 
 }

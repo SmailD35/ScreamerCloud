@@ -54,7 +54,7 @@ public:
     ///Если файл по какой-либо причине не может быть открыт (он не существует, нет такой записи в БД или проблема в работе с указателями),
     /// то возвращается nullptr
     ///=> перед чтением содержимого файла для передачи данных необходимо проверить на nullptr
-    std::shared_ptr<FILE> Download(const std::string &file_name, const std::string &dir_name);
+    std::shared_ptr<InFile> Download(const std::string &file_name, const std::string &dir_name);
 
     bool DeleteFile(const std::string &file_name, const std::string &dir_name);
 

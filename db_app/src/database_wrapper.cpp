@@ -177,8 +177,8 @@ map<string, string> DatabaseWrapper::GetFileList(const string &dir_name) {
 
         if (regex_search(dir, reg) && dir != dir_name)
         {
-            file_list[dir] = "dir";
-            ///////////вырезать название самое поддиректории (без найденной изначально директории и поддиректорий этой поддиректории)
+        	fs::path pa(dir);
+            file_list[pa.filename().string()] = "dir";
         }
         else
             file_list[file] = "file";

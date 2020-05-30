@@ -14,7 +14,7 @@ extern "C"
 }
 
 #include <iostream>
-
+#include <fstream>
 #include <memory>
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/directory.hpp>
@@ -23,7 +23,7 @@ extern "C"
 #include <boost/lexical_cast.hpp>
 
 #include <regex>
-
+#include "file.h"
 #include "logging.hpp"
 
 enum Msg{

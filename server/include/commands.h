@@ -62,7 +62,7 @@ public:
 	void Undo() override;
 };
 
-class SendFileCommand : public Command
+class UploadFileCommand : public Command
 {
 public:
 
@@ -71,7 +71,7 @@ public:
     void Undo() override;
 };
 
-class RecvFileCommand : public Command
+class DownloadFileCommand : public Command
 {
 public:
 
@@ -89,7 +89,16 @@ public:
     void Undo() override;
 };
 
-class DeleteCommand : public Command
+class DeleteFileCommand : public Command
+{
+public:
+
+	using Command::Command;
+	void Do() override;
+	void Undo() override;
+};
+
+class DeleteUserCommand : public Command
 {
 public:
 

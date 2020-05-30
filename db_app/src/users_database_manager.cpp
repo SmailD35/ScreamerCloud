@@ -65,7 +65,7 @@ bool UsersDatabaseManager::DeleteUser(const string &login, const string &passwor
                 _databaseConnection.DeleteUserRecord(userID);
                 try {
                     _databaseConnection.DeleteAllFiles();
-                    fs::remove(_path_users_storage + '/' + to_string(userID));
+                    fs::remove_all(_path_users_storage + '/' + to_string(userID));
                 }
                 catch (exception &exc) {
                     BOOST_LOG_TRIVIAL(error) << exc.what();
