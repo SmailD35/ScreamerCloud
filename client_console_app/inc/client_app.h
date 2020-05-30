@@ -23,40 +23,35 @@ const int consoleWidth = 50;
 struct User
 {
 	bool IsLoggedIn();
-	std::string login = "";
-	std::string password = "";
+	std::string login;
+	std::string password;
 };
 
 class ClientApp
 {
  public:
 	explicit ClientApp(std::string IP = "127.0.0.1", int port = 23545);
-	~ClientApp();
-	void ParseCmdArguments(int argc, char** argv);
-	int ExecuteRequest();
+	~ClientApp() = default;
+	std::shared_ptr<std::map<std::string, std::string>> ParseCmdArguments(int argc, char** argv);
+	int ExecuteRequest(const std::shared_ptr<std::map<std::string, std::string>> &request);
  private:
-	int UploadFile();
-	int DownloadFile();
-	int DeleteFile();
-	int DeleteUser();
-	int List();
-	int RegisterUser();
-	int LoginUser();
-	void Request();
-	bool ValidateResponse();
-	void PrintProgress(int outputWidth = 50);
-	void PrintFileList(std::map<std::string, std::string> list);
+	int UploadFile(const std::shared_ptr<std::map<std::string, std::string>> &request);
+	int DownloadFile(const std::shared_ptr<std::map<std::string, std::string>> &request);
+	int DeleteFile(const std::shared_ptr<std::map<std::string, std::string>> &request);
+	int DeleteUser(const std::shared_ptr<std::map<std::string, std::string>> &request);
+	int List(const std::shared_ptr<std::map<std::string, std::string>> &request);
+	int RegisterUser(const std::shared_ptr<std::map<std::string, std::string>> &request);
+	int LoginUser(const std::shared_ptr<std::map<std::string, std::string>> &request);
+	std::shared_ptr<std::map<std::string, std::string>> Request(const std::shared_ptr<std::map<std::string, std::string>> &request);
+	bool ValidateResponse(const std::shared_ptr<std::map<std::string, std::string>> &response, int cmd_code);
+	void PrintProgress(const std::shared_ptr<File> &file, int outputWidth = 50);
+	void PrintFileList(const std::shared_ptr<std::map<std::string, std::string>> &list);
 	void ReadUserConfig(std::string configPath = "../client_conf.json");
 	void WriteUserConfig(std::string configPath = "../client_conf.json");
 
  private:
-	std::string _currentDirectory;
 	User _user;
-	File* _file;
-	fs::path _filePath;
-	std::map <std::string,std::string> _clientRequest;
-	std::map <std::string,std::string> _serverResponse;
-	ClientNetwork* _clientNetwork;
+	std::shared_ptr<ClientNetwork> _clientNetwork;
 };
 
 #endif //CLIENT_CONSOLE_APP__CLIENT_APP_H_

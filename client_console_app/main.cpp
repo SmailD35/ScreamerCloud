@@ -4,7 +4,7 @@ using namespace std;
 int main(int argc, char** argv)
 {
 	ClientApp clientApp;
-	clientApp.ParseCmdArguments(argc, argv);
-	int error = clientApp.ExecuteRequest();
+	shared_ptr<map<string, string>> request = clientApp.ParseCmdArguments(argc, argv);
+	int error = clientApp.ExecuteRequest(request);
 	return error;
 }
