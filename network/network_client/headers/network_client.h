@@ -32,7 +32,7 @@ protected:
 	std::string buf_recv;
 
 private:
-	void Serialize(std::map<std::string, std::string> &client_query);
+	void Serialize(const std::shared_ptr<std::map<std::string, std::string>> &client_query);
 	std::shared_ptr<std::map<std::string, std::string>> Deserialize();
 	int Send();
 	int Recv();
@@ -41,10 +41,10 @@ public:
 	ClientNetwork(const std::string& IP, int port);
 	~ClientNetwork();
 	int Connection();
-	int SendMsg(std::map<std::string, std::string> &client_query);
+	int SendMsg(const std::shared_ptr<std::map<std::string, std::string>> &client_query);
 	std::shared_ptr<std::map<std::string, std::string>> RecvMsg();
-	int SendFile(const std::shared_ptr<InFile>& file_obj);
-	int RecvFile(const std::shared_ptr<OutFile>& file_obj);
+	int SendFile(const std::shared_ptr<InFile> &file_obj);
+	int RecvFile(const std::shared_ptr<OutFile> &file_obj);
 };
 
 

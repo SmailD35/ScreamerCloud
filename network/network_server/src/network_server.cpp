@@ -61,11 +61,11 @@ int ConnectionNetwork::Recv()
 	return read_size;
 };
 
-void ConnectionNetwork::Serialize(map<string, string> &server_answer)
+void ConnectionNetwork::Serialize(const std::shared_ptr<map<string, string>> &server_answer)
 {
 	std::stringstream ss;
 	boost::archive::text_oarchive oarch(ss);
-	oarch << server_answer;
+	oarch << *server_answer;
 	_buf_send = ss.str();
 };
 
@@ -87,9 +87,9 @@ std::shared_ptr<map<string, string>> ConnectionNetwork::Deserialize()
 	return new_map;
 };
 
-int ConnectionNetwork::SendMsg(map<string, string> &server_answer)
+int ConnectionNetwork::SendMsg(const std::shared_ptr<map<string, string>> &server_answer)
 {
-	if (server_answer.empty())
+	if (server_answer->empty())
 		return ERROR_INPUT_MAP;
 	Serialize(server_answer);
 	if (Send() < 0)

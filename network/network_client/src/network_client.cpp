@@ -61,11 +61,11 @@ int ClientNetwork::Recv()
 	return read_size;
 };
 
-void ClientNetwork::Serialize(map<string, string> &client_query)
+void ClientNetwork::Serialize(const std::shared_ptr<map<string, string>> &client_query)
 {
 	std::stringstream ss;
 	boost::archive::text_oarchive oarch(ss);
-	oarch << client_query;
+	oarch << *client_query;
 	buf_send = ss.str();
 };
 
@@ -87,9 +87,9 @@ std::shared_ptr<map<string, string>> ClientNetwork::Deserialize()
 	return new_map;
 };
 
-int ClientNetwork::SendMsg(map<string, string> &client_query)
+int ClientNetwork::SendMsg(const std::shared_ptr<map<string, string>> &client_query)
 {
-	if (client_query.empty())
+	if (client_query->empty())
 		return ERROR_INPUT_MAP;
 	Serialize(client_query);
 	if (Send() < 0)
