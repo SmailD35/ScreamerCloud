@@ -7,21 +7,26 @@
 int main(int argc, char** argv)
 {
 	ServerNetwork S("127.0.0.1", 34356);
-	auto C = S.StandConnection();
-	std::map<std::string, std::string> * map;
-	//while (true)
-	//{
+	std::shared_ptr<std::map<std::string, std::string>> map;
+
+	while (true)
+	{
+		auto C = S.StandConnection();
+
 		map = C.RecvMsg();
+		if (map == nullptr)
+		{
+			std::cout << "null" << std::endl;
+			continue;
+		}
 		for (auto& it : *map)///вывод на экран
 		{
 			std::cout << it.first << " : " << it.second << std::endl;
 		}
 		std::cout << "end" << std::endl;
-		C.SendMsg(*map);
-		auto * F = new OutFile(2349, "/home/keith/recv", "smth.log");
-		C.RecvFile(F);
-		std::cout << "end" << std::endl;
+		int s = C.SendMsg(*map);
+		std::cout << s << std::endl;
 
-	//}
+	}
 	return 0;
 }

@@ -1,42 +1,22 @@
 #include "network_server.h"
 
+#include <utility>
+
 namespace io = boost::asio;
-//using namespace boost::asio;
-//using ip::tcp;
-//using std::string;
-//using std::cout;
-//using std::endl;
-//using std::map;
 using namespace std;
 
-string value_read(int size, int start_position, string buf)
-{
-	string value;
-	for (int i = start_position, j = 0; i < size; ++i, ++j)
-	{
-		value[j] = buf[i];
-	}
-	return value;
-}
 
-
-ServerNetwork::ServerNetwork(const string& IP, int port)
+ServerNetwork::ServerNetwork(const string& IP, int port) : _acceptor(_io_service,
+		io::ip::tcp::endpoint (io::ip::address::from_string(IP), port))
 {
 	_IP = IP;
 	_port = port;
-	//boost::asio::io_service io_service;
-	//boost::asio::io_service * io_service = new boost::asio::io_service
-	io::ip::tcp::endpoint ep(io::ip::address::from_string(_IP), _port);
-	_acceptor = new io::ip::tcp::acceptor(_io_service, ep);
-	//_io_service = &io_service;
-	//_acceptor = acceptor;
-
 };
 
 ConnectionNetwork ServerNetwork::StandConnection()
 {
-	auto sock = new io::ip::tcp::socket(_io_service);
-	_acceptor->accept(*sock);
+	boost::shared_ptr<boost::asio::ip::tcp::socket> sock  = boost::make_shared<io::ip::tcp::socket>(_io_service);
+	_acceptor.accept(*sock);
 	ConnectionNetwork client_connect(sock);
 	return client_connect;
 }
@@ -44,17 +24,27 @@ ConnectionNetwork ServerNetwork::StandConnection()
 ServerNetwork::~ServerNetwork()
 = default;
 
-ConnectionNetwork::ConnectionNetwork(io::ip::tcp::socket *sock)
+ConnectionNetwork::ConnectionNetwork(boost::shared_ptr<boost::asio::ip::tcp::socket> sock)
 {
 	socket = std::move(sock);
 };
 
-size_t ConnectionNetwork::Send()
+int ConnectionNetwork::Send()
 {
-	return boost::asio::write(*socket, boost::asio::buffer(_buf_send));
+	int read_bytes = 0;
+	try
+	{
+		read_bytes = boost::asio::write(*socket, boost::asio::buffer(_buf_send));
+	}
+	catch (const boost::system::system_error& e)
+	{
+		cout << e.what() << endl;
+		return ERROR_SEND;
+	}
+	return read_bytes;
 };
 
-size_t ConnectionNetwork::Recv()
+int ConnectionNetwork::Recv()
 {
 	boost::asio::streambuf buf;
 	std::size_t read_size;
@@ -62,14 +52,13 @@ size_t ConnectionNetwork::Recv()
 	{
 		read_size = boost::asio::read_until(*socket, buf, "\0");
 	}
-	catch(std::exception& e)
+	catch(const boost::system::system_error& e)
 	{
 		cout << e.what() << endl;
+		return ERROR_RECV;
 	}
 	_buf_recv = boost::asio::buffer_cast<const char*>(buf.data());
-	cout << _buf_recv.size() << endl;
-	size_t buf_size = _buf_recv.size();
-	return buf_size;
+	return read_size;
 };
 
 void ConnectionNetwork::Serialize(map<string, string> &server_answer)
@@ -78,33 +67,47 @@ void ConnectionNetwork::Serialize(map<string, string> &server_answer)
 	boost::archive::text_oarchive oarch(ss);
 	oarch << server_answer;
 	_buf_send = ss.str();
-	cout << _buf_send << endl;
 };
 
-map<string, string> * ConnectionNetwork::Deserialize(int buf_size)
+std::shared_ptr<map<string, string>> ConnectionNetwork::Deserialize()
 {
-	auto * new_map = new std::map<string , string>;
+	auto new_map = std::make_shared<map<string, string>>();
 	std::stringstream ss;
 	ss << _buf_recv;
-	boost::archive::text_iarchive iarch(ss);
-	iarch >> *new_map;
+	try
+	{
+		boost::archive::text_iarchive iarch(ss);
+		iarch >> *new_map;
+	}
+	catch (std::exception& e)
+	{
+		cout << e.what() << endl;
+		return nullptr;
+	}
 	return new_map;
 };
 
-void ConnectionNetwork::SendMsg(map<string, string> &server_answer)
+int ConnectionNetwork::SendMsg(map<string, string> &server_answer)
 {
+	if (server_answer.empty())
+		return ERROR_INPUT_MAP;
 	Serialize(server_answer);
-	Send();
+	if (Send() < 0)
+		return ERROR_SEND;
+	return 0;
 };
 
-map<string, string> * ConnectionNetwork::RecvMsg()
+std::shared_ptr<map<string, string>> ConnectionNetwork::RecvMsg()
 {
-	std::size_t read_size = Recv();
-	map<string, string> * server_answer = Deserialize(read_size);
+	if (Recv() < 0)
+	{
+		return nullptr;
+	}
+	std::shared_ptr<map<string, string>> server_answer = Deserialize();
 	return server_answer;
-};
+}
 
-int ConnectionNetwork::SendFile(InFile * file_obj)
+int ConnectionNetwork::SendFile(const std::shared_ptr<InFile>& file_obj)
 {
 	size_t file_size = file_obj->GetSize();
 	size_t send_bytes = 0;
@@ -114,14 +117,21 @@ int ConnectionNetwork::SendFile(InFile * file_obj)
 	for (; send_bytes < file_size;)
 	{
 		buf = file_obj->GetNextChunk();
-		/*if (buf.empty())
-			return 1;*/
-		send_bytes += boost::asio::write(*socket, boost::asio::buffer(buf));
+
+		try
+		{
+			send_bytes += boost::asio::write(*socket, boost::asio::buffer(buf));
+		}
+		catch (const boost::system::system_error& e)
+		{
+			cout << e.what() << endl;
+			return ERROR_SEND;
+		}
 	}
 	return 0;
 };
 
-int ConnectionNetwork::RecvFile(OutFile * file_obj)
+int ConnectionNetwork::RecvFile(const std::shared_ptr<OutFile>& file_obj)
 {
 	size_t file_size = file_obj->GetSize();
 	size_t recv_bytes = 0;
@@ -137,8 +147,8 @@ int ConnectionNetwork::RecvFile(OutFile * file_obj)
 		catch(std::exception& e)
 		{
 			cout << e.what() << endl;
+			return ERROR_RECV;
 		}
-		//memcpy(&buf[0], boost::asio::buffer_cast<const void*>(buf_s.data()), buf_s.size());
 		recv_bytes += buf.size();
 
 		file_obj->SetNextChunk(buf);
@@ -148,5 +158,5 @@ int ConnectionNetwork::RecvFile(OutFile * file_obj)
 
 ConnectionNetwork::~ConnectionNetwork()
 {
-
+	socket->close();
 };
