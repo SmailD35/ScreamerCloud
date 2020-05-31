@@ -124,10 +124,10 @@ int ClientApp::UploadFile(const shared_ptr<map<string, string>> &request)
 	request->erase("client_file_path");
 	auto inFile = make_shared<InFile>(path.string());//InFile(_filePath.string());
 
-	request->at("username") = _user.login;
-	request->at("password") = _user.password;
-	request->at("file_size") = to_string(inFile->GetSize());
-	request->at("error_code") = "0";
+	request->insert({"username", _user.login});
+	request->insert({"password", _user.password});
+	request->insert({"file_size", to_string(inFile->GetSize())});
+	request->insert({"error_code", "0"});
 
 	shared_ptr<map<string, string>> response = Request(request);
 	if (ValidateResponse(response, UPLOAD))
@@ -149,9 +149,9 @@ int ClientApp::DownloadFile(const shared_ptr<map<string, string>> &request)
 		cout << "You are not logged in" << endl;
 		return -1;
 	}
-	request->at("username") = _user.login;
-	request->at("password") = _user.password;
-	request->at("error_code") = "0";
+	request->insert({"username", _user.login});
+	request->insert({"password", _user.password});
+	request->insert({"error_code", "0"});
 	fs::path path(request->at("client_file_path"));
 	request->erase("client_file_path");
 
@@ -179,9 +179,9 @@ int ClientApp::DeleteFile(const shared_ptr<map<string, string>> &request)
 		cout << "You are not logged in" << endl;
 		return -1;
 	}
-	request->at("username") = _user.login;
-	request->at("password") = _user.password;
-	request->at("error_code") = "0";
+	request->insert({"username", _user.login});
+	request->insert({"password", _user.password});
+	request->insert({"error_code", "0"});
 
 	shared_ptr<map<string, string>> response = Request(request);
 	if (ValidateResponse(response, DELETE_FILE))
@@ -203,9 +203,9 @@ int ClientApp::DeleteUser(const shared_ptr<map<string, string>> &request)
 		cout << "You are not logged in" << endl;
 		return -1;
 	}
-	request->at("username") = _user.login;
-	request->at("password") = _user.password;
-	request->at("error_code") = "0";
+	request->insert({"username", _user.login});
+	request->insert({"password", _user.password});
+	request->insert({"error_code", "0"});
 
 	shared_ptr<map<string, string>> response = Request(request);
 	if (ValidateResponse(response, DELETE_USER))
@@ -227,9 +227,9 @@ int ClientApp::List(const shared_ptr<map<string, string>> &request)
 		cout << "You are not logged in" << endl;
 		return -1;
 	}
-	request->at("username") = _user.login;
-	request->at("password") = _user.password;
-	request->at("error_code") = "0";
+	request->insert({"username", _user.login});
+	request->insert({"password", _user.password});
+	request->insert({"error_code", "0"});
 
 	shared_ptr<map<string, string>> response = Request(request);
 	if (ValidateResponse(response, LIST))
@@ -254,9 +254,9 @@ int ClientApp::RegisterUser(const shared_ptr<map<string, string>> &request)
 	_user.login = username;
 	_user.password = password;
 
-	request->at("username") = username;
-	request->at("password") = password;
-	request->at("error_code") = "0";
+	request->insert({"username", _user.login});
+	request->insert({"password", _user.password});
+	request->insert({"error_code", "0"});
 
 	shared_ptr<map<string, string>> response = Request(request);
 	if (ValidateResponse(response, REGISTER))
@@ -285,10 +285,9 @@ int ClientApp::LoginUser(const shared_ptr<map<string, string>> &request)
 	_user.login = username;
 	_user.password = password;
 
-	request->at("username") = username;
-	request->at("password") = password;
-	request->at("cmd_code") = to_string(LOGIN);
-	request->at("error_code") = "0";
+	request->insert({"username", _user.login});
+	request->insert({"password", _user.password});
+	request->insert({"error_code", "0"});
 
 	shared_ptr<map<string, string>> response = Request(request);
 	if (ValidateResponse(response, LOGIN))
