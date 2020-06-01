@@ -17,8 +17,11 @@ int main(int argc, char **argv)
 	iarch >> new_map;
 	std::cout << (map == new_map) << std::endl;*/
 
-	std::map<std::string, std::string> map = {{"login", "e"}, {"password", "12345"}};
+	//std::map<std::string, std::string> map = {{"login", "e"}, {"password", "12345"}};
+	auto map = std::make_shared<std::map<std::string, std::string>>();
+	map->insert({{"login", "e"}, {"password", "12345"}});
 	std::shared_ptr<std::map<std::string, std::string>> map_new;
+	//auto new_map = std::make_shared<std::map<std::string, std::string>>();
 
 	ClientNetwork Client("127.0.0.1", 34356);
 	if(Client.Connection())

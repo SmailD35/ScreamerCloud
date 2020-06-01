@@ -24,7 +24,7 @@ int main(int argc, char** argv)
 			std::cout << it.first << " : " << it.second << std::endl;
 		}
 		std::cout << "end" << std::endl;
-		int s = C.SendMsg(*map);
+		int s = C.SendMsg(map);
 		std::cout << s << std::endl;
 
 	}
