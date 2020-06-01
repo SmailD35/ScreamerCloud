@@ -26,6 +26,8 @@ int main(int argc, char **argv)
 	ClientNetwork Client("127.0.0.1", 34356);
 	if(Client.Connection())
 		return 1;
+	int a;
+	std::cin >> a;
 	Client.SendMsg(map);
 	std::string str = "hello";
 	//boost::asio::write(*Client._socket, boost::asio::buffer(str));
