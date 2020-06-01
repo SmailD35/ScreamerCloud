@@ -73,4 +73,13 @@ unsigned long DatabaseManager::CheckAvailableSpace() {
     fs::space_info info = fs::space(_filesDatabaseManager.GetPathToUsersStorage());
     return info.available;
 }
+
+std::string DatabaseManager::GetPublicLink(const string &file_name, const string &dir_name) {
+    return _filesDatabaseManager.GetPublicLink(file_name, dir_name);
+}
+
+std::shared_ptr<InFile> DatabaseManager::DownloadByLink(const string &link) {
+    shared_ptr<InFile> file = _filesDatabaseManager.DownloadFileByLink(link);
+    return file;
+}
  

@@ -40,6 +40,10 @@ public:
     bool DeleteFile(const std::string &file_name, const std::string &dir_name);
 
     std::map<std::string, std::string> GetFileList(const std::string &dir_name);
+
+    std::string GetPublicLink(const std::string &file_name, const std::string &dir_name);
+
+    std::shared_ptr<InFile> DownloadFileByLink(const std::string &link);
 };
 
 

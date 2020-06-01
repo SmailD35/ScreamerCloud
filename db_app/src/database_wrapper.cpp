@@ -204,7 +204,7 @@ shared_ptr<PGconn> DatabaseWrapper::GetConnection(DBType db_type) {
 
 void DatabaseWrapper::GetFilesDBInfo() {
     pt::ptree root;
-    pt::read_json("../config.json", root);
+    pt::read_json("/etc/screamer_cloud_config.json", root);
 
     string  info;
 
@@ -218,7 +218,7 @@ void DatabaseWrapper::GetFilesDBInfo() {
 
 void DatabaseWrapper::GetUsersDBInfo() {
     pt::ptree root;
-    pt::read_json("../config.json", root);
+    pt::read_json("/etc/screamer_cloud_config.json", root);
 
     string info;
 
@@ -295,4 +295,57 @@ void DatabaseWrapper::DeleteAllFiles() {
         throw std::runtime_error(PQresultErrorMessage(query_result.get()));
     else
         return;
+}
+
+string DatabaseWrapper::GetPublicLink(int fileID) {
+    shared_ptr<PGconn> connection;
+    try {
+        connection = GetConnection(FILES_DB);
+    }
+    catch(std::exception &exc) {
+        BOOST_LOG_TRIVIAL(fatal) << exc.what();
+    }
+
+    int link = hash<string>{}(to_string(fileID));
+    string file_link = "screamer_cloud/link/file/" + to_string(link);
+
+    std::string query = "UPDATE files_data SET public_link = " + file_link + " WHERE id_file = " + to_string(fileID);
+    BOOST_LOG_TRIVIAL(trace) << query;
+
+    auto res_deleter = [](PGresult* r) { PQclear(r);};
+    std::unique_ptr <PGresult, decltype(res_deleter)> query_result(PQexec(connection.get(), query.c_str()), res_deleter);
+
+    if (PQresultStatus(query_result.get()) != PGRES_COMMAND_OK)
+        throw std::runtime_error(PQresultErrorMessage(query_result.get()));
+    else
+        return file_link;
+}
+
+int DatabaseWrapper::CheckFileIDByLink(const string &link) {
+    shared_ptr<PGconn> connection;
+    try {
+        connection = GetConnection(FILES_DB);
+    }
+    catch(std::exception &exc) {
+        BOOST_LOG_TRIVIAL(fatal) << exc.what();
+    }
+
+    std::string query = "SELECT ID_file FROM files_data WHERE public_link = " + link;
+    BOOST_LOG_TRIVIAL(trace) << query;
+
+    auto res_deleter = [](PGresult* r) { PQclear(r);};
+    std::unique_ptr <PGresult, decltype(res_deleter)> query_result(PQexec(connection.get(), query.c_str()), res_deleter);
+
+    if (PQresultStatus(query_result.get()) != PGRES_TUPLES_OK)
+        throw std::runtime_error(PQresultErrorMessage(query_result.get()));
+
+    //если не нашли нужной записи, возвращаем FAIL
+    if (!PQntuples(query_result.get()))
+        return FAIL;
+    else {
+        string result;
+        result = PQgetvalue(query_result.get(), 0, 0);
+        cout << lexical_cast<int>(result) << endl;
+        return lexical_cast<int>(result);
+    }
 }

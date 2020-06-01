@@ -80,6 +80,10 @@ public:
     void DeleteAllFiles();
 
     std::map <std::string, std::string> GetFileList(std::string const& dir_name);
+
+    std::string GetPublicLink(int fileID);
+
+    int CheckFileIDByLink(const std::string &link);
 };
 
 

@@ -12,9 +12,12 @@ private:
     int _userID;
 
     DatabaseWrapper _databaseConnection;
+
 	std::string _path_users_storage;
+
 	void SetPathToUsersStorage();
 
+    bool DeleteUserInternal(int userID);
 public:
     UsersDatabaseManager();
 

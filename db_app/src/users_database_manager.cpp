@@ -35,7 +35,7 @@ int UsersDatabaseManager::RegisterUser(string const& login, string const& passwo
             return FAIL;
     }
     catch (exception &exc) {
-        BOOST_LOG_TRIVIAL(debug) << exc.what();
+        BOOST_LOG_TRIVIAL(error) << exc.what();
         return FAIL;
     }
 }
@@ -52,7 +52,7 @@ int UsersDatabaseManager::AuthorizeUser(string const& login, string const& passw
         return _userID;
     }
     catch (exception &exc) {
-        BOOST_LOG_TRIVIAL(debug) << exc.what();
+        BOOST_LOG_TRIVIAL(error) << exc.what();
         return FAIL;
     }
 }
@@ -61,36 +61,42 @@ bool UsersDatabaseManager::DeleteUser(const string &login, const string &passwor
     try {
         int userID = _databaseConnection.CheckUserID(login, password);
         if (userID != FAIL) {
-            try {
-                _databaseConnection.DeleteUserRecord(userID);
-                try {
-                    _databaseConnection.DeleteAllFiles();
-                    fs::remove_all(_path_users_storage + '/' + to_string(userID));
-                }
-                catch (exception &exc) {
-                    BOOST_LOG_TRIVIAL(error) << exc.what();
-                    return false;
-                }
-                return true;
-            }
-            catch (exception &exc) {
-                BOOST_LOG_TRIVIAL(error) << exc.what();
-                return false;
-            }
+            return DeleteUserInternal(userID);
         }
         else
             return false;
     }
     catch (exception &exc) {
-        BOOST_LOG_TRIVIAL(debug) << exc.what();
+        BOOST_LOG_TRIVIAL(error) << exc.what();
         return false;
     }
 }
 
+
+bool UsersDatabaseManager::DeleteUserInternal(int userID) {
+    try {
+        _databaseConnection.DeleteUserRecord(userID);
+        try {
+            _databaseConnection.DeleteAllFiles();
+            fs::remove_all(_path_users_storage + '/' + to_string(userID));
+        }
+        catch (exception &exc) {
+            BOOST_LOG_TRIVIAL(error) << exc.what();
+            return false;
+        }
+        return true;
+    }
+    catch (exception &exc) {
+        BOOST_LOG_TRIVIAL(error) << exc.what();
+        return false;
+    }
+}
+
+
 void UsersDatabaseManager::SetPathToUsersStorage() {
 	////считываем из конфига путь к хранящимся файлам пользователей
 	pt::ptree root;
-	pt::read_json("../config.json", root);
+	pt::read_json("/etc/screamer_cloud_config.json", root);
 	string users_path = root.get<string>("users_storage");
 
 	if (!fs::exists(users_path))

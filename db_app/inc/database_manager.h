@@ -63,6 +63,13 @@ public:
     /// Возвращаемое значение имеет следующий тип <item_name, item_type>,
     /// где item_type может иметь 2 значения: dir или file, для интерпретации этих данных пользователю
     std::map <std::string, std::string> GetFileList(const std::string &dir_name);
+
+    /// После возвращения ссылки надо проверять строку на пустоту
+    /// Если строка пустая => смотреть error code
+    std::string GetPublicLink(const std::string &file_name, const std::string &dir_name);
+
+
+    std::shared_ptr<InFile> DownloadByLink(const std::string &link);
 };
 
 
