@@ -15,8 +15,8 @@ ServerNetwork::ServerNetwork(const string& IP, int port) : _acceptor(_io_service
 
 ConnectionNetwork ServerNetwork::StandConnection()
 {
-	//boost::shared_ptr<boost::asio::ip::tcp::socket> sock  = boost::make_shared<io::ip::tcp::socket>(_io_service);
-	auto sock = new io::ip::tcp::socket(_io_service);
+	boost::shared_ptr<boost::asio::ip::tcp::socket> sock  = boost::make_shared<io::ip::tcp::socket>(_io_service);
+	//auto sock = new io::ip::tcp::socket(_io_service);
 	_acceptor.accept(*sock);
 	ConnectionNetwork client_connect(sock);
 	return client_connect;
@@ -25,8 +25,8 @@ ConnectionNetwork ServerNetwork::StandConnection()
 ServerNetwork::~ServerNetwork()
 = default;
 
-//ConnectionNetwork::ConnectionNetwork(boost::shared_ptr<boost::asio::ip::tcp::socket> sock)
-ConnectionNetwork::ConnectionNetwork(boost::asio::ip::tcp::socket * sock)
+ConnectionNetwork::ConnectionNetwork(boost::shared_ptr<boost::asio::ip::tcp::socket> sock)
+//ConnectionNetwork::ConnectionNetwork(boost::asio::ip::tcp::socket * sock)
 {
 	socket = std::move(sock);
 };
@@ -158,6 +158,10 @@ int ConnectionNetwork::RecvFile(const std::shared_ptr<OutFile>& file_obj)
 };
 
 ConnectionNetwork::~ConnectionNetwork()
+{
+}
+
+void ConnectionNetwork::CloseConnection()
 {
 	socket->close();
 };

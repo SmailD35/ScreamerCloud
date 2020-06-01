@@ -30,14 +30,14 @@ private:
 	std::shared_ptr<std::map<std::string, std::string>> Deserialize();
 	int Send();
 	int Recv();
-	//boost::shared_ptr<boost::asio::ip::tcp::socket> socket;
-	boost::asio::ip::tcp::socket * socket;
+	boost::shared_ptr<boost::asio::ip::tcp::socket> socket;
+	//boost::asio::ip::tcp::socket * socket;
 
 public:
-
-	//ConnectionNetwork(boost::shared_ptr<boost::asio::ip::tcp::socket> sock);
-	ConnectionNetwork(boost::asio::ip::tcp::socket * sock);
+	ConnectionNetwork(boost::shared_ptr<boost::asio::ip::tcp::socket> sock);
+	//ConnectionNetwork(boost::asio::ip::tcp::socket * sock);
 	~ConnectionNetwork();
+	void CloseConnection();
 	int SendMsg(const std::shared_ptr<std::map<std::string, std::string>> &client_query);
 	std::shared_ptr<std::map<std::string, std::string>> RecvMsg();
 	int SendFile(const std::shared_ptr<InFile> &file_obj);
