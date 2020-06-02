@@ -9,22 +9,28 @@
 #include "commands.h"
 #include "network_server.h"
 #include "file.h"
+#include <boost/property_tree/json_parser.hpp>
+#include "cmd_codes.h"
+#include "error_codes.h"
+#include "server_logging.hpp"
+
+namespace pt = boost::property_tree;
 
 class Server
 {
 public:
-	Server(std::string ip = "127.0.0.1", int port = 23545);
+	Server();
+	std::map<std::string, std::string> ReadConfig(const std::string& path = "/etc/screamer_cloud.conf");
 	void ConnectionsLoop();
 	void QueriesLoop();
 	void WorkerLoop();
 
 private:
 	std::queue<ConnectionNetwork> _connections;
-	std::queue<Command*> _queries;
-	Command* CreateCommand(UserSession userSession);
-
-private:
-	ServerNetwork* _network;
+	std::queue<std::shared_ptr<Command>> _queries;
+	std::shared_ptr<Command> CreateCommand(UserSession userSession);
+	std::shared_ptr<ServerNetwork> _network;
+	std::map<std::string, std::string> _config;
 };
 
 #endif //SERVER_SERVER_H

@@ -2,176 +2,247 @@
 
 using namespace std;
 
+UserSession::UserSession(const ConnectionNetwork& userConnection,
+		std::map<std::string, std::string> userQuery, const std::string& storagePath)
+		: _userConnection(userConnection)
+{
+	_userQuery = move(userQuery);
+	_isAuthorized = _databaseManager.Authorize(_userQuery["username"], _userQuery["password"]);
+	if (_isAuthorized)
+		_userPath = storagePath + '/' + _databaseManager.GetUserDir();
+}
+
 UserSession::~UserSession()
 {
-
+	//_userConnection.CloseConnection();
 }
 
-//Command::Command()
-//{
-//
-//}
-
-void Invoker::Do()
+int Invoker::Do()
 {
-	_command->Do();
+	return _command->Do();
 }
 
-void Invoker::Undo()
+int Invoker::Undo()
 {
-	_command->Undo();
+	return _command->Undo();
 }
 
-void RegisterUserCommand::Do()
+int RegisterUserCommand::Do()
 {
-	DatabaseManager dbManager = _userSession._databaseManager;
-	ConnectionNetwork network = _userSession._userConnection;
-	map<string,string> query = _userSession._userQuery;
+	DatabaseManager &dbManager = _userSession._databaseManager;
+	ConnectionNetwork &network = _userSession._userConnection;
+	map<string,string> &query = _userSession._userQuery;
 
-	bool errorCode = !dbManager.Register(query["username"], query["password"]);
-	query["error_code"] = to_string(errorCode);
+	bool dbError = !dbManager.Register(query["username"], query["password"]);
+	query["error_code"] = to_string(dbError);
 
-	network.SendMsg(query);
+	int netError = network.SendMsg(make_shared<map<string, string>>(query));
+	if (netError)
+		BOOST_LOG_TRIVIAL(error) << network.GetClientIP() << " SendMsg in RegisterUserCommand failed";
+
+	return SERVER_NOERROR;
 }
 
-void RegisterUserCommand::Undo()
+int LoginUserCommand::Do()
 {
+	DatabaseManager &dbManager = _userSession._databaseManager;
+	ConnectionNetwork &network = _userSession._userConnection;
+	map<string,string> &query = _userSession._userQuery;
 
+	query["error_code"] = to_string(!_userSession._isAuthorized);
+
+	int netError = network.SendMsg(make_shared<map<string, string>>(query));
+	if (netError)
+		BOOST_LOG_TRIVIAL(error) << network.GetClientIP() << " SendMsg in LoginUserCommand failed";
+
+	return SERVER_NOERROR;
 }
 
-void LoginUserCommand::Do()
+int UploadFileCommand::Do()
 {
-	DatabaseManager dbManager = _userSession._databaseManager;
-	ConnectionNetwork network = _userSession._userConnection;
-	map<string,string> query = _userSession._userQuery;
+	DatabaseManager &dbManager = _userSession._databaseManager;
+	ConnectionNetwork &network = _userSession._userConnection;
+	map<string,string> &query = _userSession._userQuery;
 
-	bool errorCode = !dbManager.Authorize(query["username"], query["password"]);
-	query["error_code"] = to_string(errorCode);
-
-	network.SendMsg(query);
-}
-
-void LoginUserCommand::Undo()
-{
-
-}
-
-void UploadFileCommand::Do()
-{
-	DatabaseManager dbManager = _userSession._databaseManager;
-	ConnectionNetwork network = _userSession._userConnection;
-	map<string,string> query = _userSession._userQuery;
-
-	bool error = !dbManager.Authorize(query["username"], query["password"]);
-	query["error_code"] = to_string(error);
-
-	network.SendMsg(query);
-
-	if (error == 0)
+	if (!_userSession._isAuthorized)
 	{
-		string file_path = "test_dir/" + dbManager.GetUserDir();
-		stringstream sstream(query["file_size"]);
-		size_t size = 0;
-		sstream >> size;
-		auto file = new OutFile(size, file_path, query["file_name"]);
-		network.RecvFile(file);
-		delete file;
-		error = dbManager.Upload(query["file_name"], query["file_directory"], "1234");
+		query["error_code"] = to_string(SERVER_AUTH_ERROR);
+		int netError = network.SendMsg(make_shared<map<string, string>>(query));
+		if (netError)
+			BOOST_LOG_TRIVIAL(error) << network.GetClientIP() << " SendMsg in UploadFileCommand failed";
+		return SERVER_AUTH_ERROR;
 	}
 
-	//network.SendMsg(query);
+	int netError = network.SendMsg(make_shared<map<string, string>>(query));
+	if (netError)
+	{
+		BOOST_LOG_TRIVIAL(error) << network.GetClientIP() << " SendMsg in UploadFileCommand failed";
+		return SERVER_UPLOAD_ERROR;
+	}
+
+	stringstream sstream(query["file_size"]);
+	size_t size = 0;
+	sstream >> size;
+	auto file = make_shared<OutFile>(size, _userSession._userPath, query["file_name"]);
+
+	netError = network.RecvFile(file);
+	if (netError)
+	{
+		BOOST_LOG_TRIVIAL(error) << network.GetClientIP() << " RecvFile in UploadFileCommand failed";
+		return SERVER_UPLOAD_ERROR;
+	}
+
+	bool dbError = !dbManager.Upload(query["file_name"], query["file_directory"], "1234");
+	if (dbError)
+	{
+		query["error_code"] = to_string(SERVER_UPLOAD_ERROR);
+		netError = network.SendMsg(make_shared<map<string, string>>(query));
+		if (netError)
+			BOOST_LOG_TRIVIAL(error) << network.GetClientIP() << " SendMsg in UploadFileCommand failed";
+		return SERVER_UPLOAD_ERROR;
+	}
+
+	netError = network.SendMsg(make_shared<map<string, string>>(query));
+	if (netError)
+		BOOST_LOG_TRIVIAL(error) << network.GetClientIP() << " SendMsg in UploadFileCommand failed";
+
+
+	return SERVER_NOERROR;
 	//TODO: проверить хеш-сумму
 }
 
-void UploadFileCommand::Undo()
+int UploadFileCommand::Undo()
 {
-
+	fs::remove(_userSession._userPath + '/' + _userSession._userQuery["file_name"]);
+	return SERVER_NOERROR;
 }
 
-void DownloadFileCommand::Do()
+int DownloadFileCommand::Do()
 {
-	DatabaseManager dbManager = _userSession._databaseManager;
-	ConnectionNetwork network = _userSession._userConnection;
-	map<string,string> query = _userSession._userQuery;
+	DatabaseManager &dbManager = _userSession._databaseManager;
+	ConnectionNetwork &network = _userSession._userConnection;
+	map<string,string> &query = _userSession._userQuery;
 
-	bool error = !dbManager.Authorize(query["username"], query["password"]);
+	if (!_userSession._isAuthorized)
+	{
+		query["error_code"] = to_string(SERVER_AUTH_ERROR);
+		int netError = network.SendMsg(make_shared<map<string, string>>(query));
+		if (netError)
+			BOOST_LOG_TRIVIAL(error) << network.GetClientIP() << " SendMsg in DownloadFileCommand failed";
+		return SERVER_AUTH_ERROR;
+	}
+
 	shared_ptr<InFile> file = dbManager.Download(query["file_name"], query["file_directory"]);
+	if (file == nullptr)
+	{
+		query["error_code"] = to_string(SERVER_DOWNLOAD_ERROR);
+		int netError = network.SendMsg(make_shared<map<string, string>>(query));
+		if (netError)
+			BOOST_LOG_TRIVIAL(error) << network.GetClientIP() << " SendMsg in DownloadFileCommand failed";
+		return SERVER_DOWNLOAD_ERROR;
+	}
 	query["file_size"] = to_string(file->GetSize());
-	query["error_code"] = to_string(error);
 
-	network.SendMsg(query);
-
-	if (error == 0)
+	int netError = network.SendMsg(make_shared<map<string, string>>(query));
+	if (netError)
 	{
-		network.SendFile(file.get());
+		BOOST_LOG_TRIVIAL(error) << network.GetClientIP() << " SendMsg in DownloadFileCommand failed";
+		return SERVER_DOWNLOAD_ERROR;
 	}
 
-	//network.SendMsg(query);
-}
-
-void DownloadFileCommand::Undo()
-{
-
-}
-
-void SendFileListCommand::Do()
-{
-	DatabaseManager dbManager = _userSession._databaseManager;
-	ConnectionNetwork network = _userSession._userConnection;
-	map<string,string> query = _userSession._userQuery;
-
-	bool error = !dbManager.Authorize(query["username"], query["password"]);
-	query["error_code"] = to_string(error);
-	network.SendMsg(query);
-
-	if (error == 0)
+	netError = network.SendFile(file);
+	if (netError)
 	{
-		map<string,string> list = dbManager.GetFileList(query["directory"]);
-		network.SendMsg(list);
+		BOOST_LOG_TRIVIAL(error) << network.GetClientIP() << " SendFile in DownloadFileCommand failed";
+		return SERVER_DOWNLOAD_ERROR;
 	}
+
+	return SERVER_NOERROR;
 }
 
-void SendFileListCommand::Undo()
+int SendFileListCommand::Do()
 {
+	DatabaseManager &dbManager = _userSession._databaseManager;
+	ConnectionNetwork &network = _userSession._userConnection;
+	map<string,string> &query = _userSession._userQuery;
 
-}
-
-void DeleteFileCommand::Do()
-{
-	DatabaseManager dbManager = _userSession._databaseManager;
-	ConnectionNetwork network = _userSession._userConnection;
-	map<string,string> query = _userSession._userQuery;
-
-	bool error = !dbManager.Authorize(query["username"], query["password"]);
-	if (error == 0)
+	if (!_userSession._isAuthorized)
 	{
-		error = !dbManager.DeleteFile(query["file_name"], query["file_directory"]);
+		query["error_code"] = to_string(SERVER_AUTH_ERROR);
+		int netError = network.SendMsg(make_shared<map<string, string>>(query));
+		if (netError)
+			BOOST_LOG_TRIVIAL(error) << network.GetClientIP() << " SendMsg in SendFileListCommand failed";
+		return SERVER_AUTH_ERROR;
 	}
-	query["error_code"] = to_string(error);
-	network.SendMsg(query);
-}
 
-void DeleteFileCommand::Undo()
-{
-
-}
-
-void DeleteUserCommand::Do()
-{
-	DatabaseManager dbManager = _userSession._databaseManager;
-	ConnectionNetwork network = _userSession._userConnection;
-	map<string,string> query = _userSession._userQuery;
-
-	bool error = !dbManager.Authorize(query["username"], query["password"]);
-	if (error == 0)
+	int netError = network.SendMsg(make_shared<map<string, string>>(query));
+	if (netError)
 	{
-		error = !dbManager.DeleteUser(query["username"], query["password"]);
+		BOOST_LOG_TRIVIAL(error) << network.GetClientIP() << " SendMsg in SendFileListCommand failed";
+		return SERVER_LIST_ERROR;
 	}
-	query["error_code"] = to_string(error);
-	network.SendMsg(query);
+
+	map<string,string> list = dbManager.GetFileList(query["directory"]);
+	netError = network.SendMsg(make_shared<map<string, string>>(list));
+	if (netError)
+	{
+		BOOST_LOG_TRIVIAL(error) << network.GetClientIP() << " SendMsg in SendFileListCommand failed";
+		return SERVER_LIST_ERROR;
+	}
+
+	return SERVER_NOERROR;
 }
 
-void DeleteUserCommand::Undo()
+int DeleteFileCommand::Do()
 {
+	DatabaseManager &dbManager = _userSession._databaseManager;
+	ConnectionNetwork &network = _userSession._userConnection;
+	map<string,string> &query = _userSession._userQuery;
 
+	if (!_userSession._isAuthorized)
+	{
+		query["error_code"] = to_string(SERVER_AUTH_ERROR);
+		int netError = network.SendMsg(make_shared<map<string, string>>(query));
+		if (netError)
+			BOOST_LOG_TRIVIAL(error) << network.GetClientIP() << " SendMsg in DeleteFileCommand failed";
+		return SERVER_AUTH_ERROR;
+	}
+
+	int dbError = !dbManager.DeleteFile(query["file_name"], query["file_directory"]);
+	query["error_code"] = to_string(dbError);
+	int netError = network.SendMsg(make_shared<map<string, string>>(query));
+	if (netError)
+	{
+		BOOST_LOG_TRIVIAL(error) << network.GetClientIP() << " SendMsg in DeleteFileCommand failed";
+		return SERVER_DELETEFILE_ERROR;
+	}
+
+	return SERVER_NOERROR;
+}
+
+int DeleteUserCommand::Do()
+{
+	DatabaseManager &dbManager = _userSession._databaseManager;
+	ConnectionNetwork &network = _userSession._userConnection;
+	map<string,string> &query = _userSession._userQuery;
+
+	if (!_userSession._isAuthorized)
+	{
+		query["error_code"] = to_string(SERVER_AUTH_ERROR);
+		int netError = network.SendMsg(make_shared<map<string, string>>(query));
+		if (netError)
+			BOOST_LOG_TRIVIAL(error) << network.GetClientIP() << " SendMsg in DeleteUserCommand failed";
+		return SERVER_AUTH_ERROR;
+	}
+
+	int dbError = !dbManager.DeleteUser(query["username"], query["password"]);
+	query["error_code"] = to_string(dbError);
+	int netError = network.SendMsg(make_shared<map<string, string>>(query));
+	if (netError)
+	{
+		BOOST_LOG_TRIVIAL(error) << network.GetClientIP() << " SendMsg in DeleteUserCommand failed";
+		return SERVER_DELETEUSER_ERROR;
+	}
+
+	return SERVER_NOERROR;
 }

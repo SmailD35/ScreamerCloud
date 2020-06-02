@@ -3,15 +3,21 @@
 //
 
 #include "server.h"
-#include "cmd_codes.h"
 
 using namespace std;
 
-Server::Server(string ip, int port)
+Server::Server()
 {
-	_network = new ServerNetwork(ip, port);
+	InitServerLogging();
+	_config = ReadConfig();
+	if (_config.empty())
+	{
+		BOOST_LOG_TRIVIAL(fatal) << "ReadConfig failed";
+		exit(SERVER_READ_CONFIG_ERROR);
+	}
+	_network = make_shared<ServerNetwork>(_config["IP"], stoi(_config["port"]));
 }
-;
+
 void Server::ConnectionsLoop()
 {
 	while (true)
@@ -29,54 +35,56 @@ void Server::QueriesLoop()
 		{
 			ConnectionNetwork connection = _connections.front();
 			_connections.pop();
+			shared_ptr<map<string, string>> message = connection.RecvMsg();
+			if (message == nullptr)
+			{
+				BOOST_LOG_TRIVIAL(error) << connection.GetClientIP() << " RecvMsg failed";
+				continue;
+			}
 
-			map<string,string>* message = connection.RecvMsg();
-			UserSession userSession(connection);
-			userSession._userQuery = move(*message);
-			Command* newCommand = CreateCommand(userSession);
+			UserSession userSession(connection, *message, _config["storage_path"]);
+			shared_ptr<Command> newCommand = CreateCommand(userSession);
+			if (newCommand == nullptr)
+			{
+				BOOST_LOG_TRIVIAL(error) << connection.GetClientIP() << " CreateCommand failed";
+				continue;
+			}
 			_queries.push(newCommand);
 		}
 	}
 }
 
-Command* Server::CreateCommand(UserSession userSession)
+shared_ptr<Command> Server::CreateCommand(UserSession userSession)
 {
-	map<string,string> query = userSession._userQuery;
-	Command* newCommand = nullptr;
+	map<string,string> &query = userSession._userQuery;
 
 	if (query.count("error_code") && (query["error_code"] == "0"))
 		switch (stoi(query["cmd_code"]))
 		{
 		case UPLOAD:
-			newCommand = new UploadFileCommand(userSession);
-			break;
+			return make_shared<UploadFileCommand>(userSession);
 
 		case DOWNLOAD:
-			newCommand = new DownloadFileCommand(userSession);
-			break;
+			return make_shared<DownloadFileCommand>(userSession);
 
 		case DELETE_FILE:
-			newCommand = new DeleteFileCommand(userSession);
-			break;
+			return make_shared<DeleteFileCommand>(userSession);
 
 		case DELETE_USER:
-			newCommand = new DeleteUserCommand(userSession);
-			break;
+			return make_shared<DeleteUserCommand>(userSession);
 
 		case LIST:
-			newCommand = new SendFileListCommand(userSession);
-			break;
+			return make_shared<SendFileListCommand>(userSession);
 
 		case REGISTER:
-			newCommand = new RegisterUserCommand(userSession);
-			break;
+			return make_shared<RegisterUserCommand>(userSession);
 
 		case LOGIN:
-			newCommand = new LoginUserCommand(userSession);
-			break;
-		}
+			return make_shared<LoginUserCommand>(userSession);
 
-	return newCommand;
+		default:
+			return nullptr;
+		}
 }
 
 void Server::WorkerLoop()
@@ -85,10 +93,41 @@ void Server::WorkerLoop()
 	{
 		if (!_queries.empty())
 		{
-			Command* command = _queries.front();
+			shared_ptr<Command> command = _queries.front();
 			_queries.pop();
 			Invoker newInvoker(command);
-			newInvoker.Do();
+			if (newInvoker.Do() != SERVER_NOERROR)
+				newInvoker.Undo();
 		}
 	}
+}
+
+map<string, string> Server::ReadConfig(const string& path)
+{
+	map<string, string> result;
+	pt::ptree root;
+
+	try
+	{
+		pt::read_json(path, root);
+		result["storage_path"] = root.get<string>("users_storage");
+		for (pt::ptree::value_type& values : root.get_child("server"))
+		{
+			if (values.first == "IP")
+				result["IP"] = values.second.data();
+			if (values.first == "TCP_port")
+				result["port"] = values.second.data();
+		}
+		if (!(result.count("storage_path") && result.count("IP") && result.count("port")))
+		{
+			result.clear();
+			throw runtime_error("Missing crucial data in the config");
+		}
+	}
+	catch (std::exception &exc)
+	{
+		BOOST_LOG_TRIVIAL(fatal) << exc.what();
+	}
+
+	return result;
 }
