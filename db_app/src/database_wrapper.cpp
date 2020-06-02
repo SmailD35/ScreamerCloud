@@ -117,8 +117,10 @@ int DatabaseWrapper::CheckFileID(const std::string &file_name, const std::string
         throw std::runtime_error(PQresultErrorMessage(query_result.get()));
 
     //если не нашли нужной записи, возвращаем FAIL
-    if (!PQntuples(query_result.get()))
-        return FAIL;
+    if (!PQntuples(query_result.get())){
+    	throw std::runtime_error("No such file in DB");
+		return FAIL;
+	}
     else {
         string result;
         result = PQgetvalue(query_result.get(), 0, 0);
@@ -212,7 +214,7 @@ shared_ptr<PGconn> DatabaseWrapper::GetConnection(DBType db_type) {
 
 void DatabaseWrapper::GetFilesDBInfo() {
     pt::ptree root;
-    pt::read_json("/etc/screamer_cloud_config.json", root);
+    pt::read_json("/etc/screamer_cloud.conf", root);
 
     string  info;
 
@@ -226,7 +228,7 @@ void DatabaseWrapper::GetFilesDBInfo() {
 
 void DatabaseWrapper::GetUsersDBInfo() {
     pt::ptree root;
-    pt::read_json("/etc/screamer_cloud_config.json", root);
+    pt::read_json("/etc/screamer_cloud.conf", root);
 
     string info;
 

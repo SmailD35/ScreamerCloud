@@ -7,7 +7,8 @@ UserSession::UserSession(const ConnectionNetwork& userConnection,
 		: _userConnection(userConnection)
 {
 	_userQuery = move(userQuery);
-	_isAuthorized = _databaseManager.Authorize(_userQuery["username"], _userQuery["password"]);
+	DbErrorCodes dbError = DB_NOERROR;
+	_isAuthorized = _databaseManager.Authorize(_userQuery["username"], _userQuery["password"], dbError);
 	if (_isAuthorized)
 		_userPath = storagePath + '/' + _databaseManager.GetUserDir();
 }
@@ -33,7 +34,8 @@ int RegisterUserCommand::Do()
 	ConnectionNetwork &network = _userSession._userConnection;
 	map<string,string> &query = _userSession._userQuery;
 
-	bool dbError = !dbManager.Register(query["username"], query["password"]);
+	DbErrorCodes dbError = DB_NOERROR;
+	!dbManager.Register(query["username"], query["password"], dbError);
 	query["error_code"] = to_string(dbError);
 
 	int netError = network.SendMsg(make_shared<map<string, string>>(query));
@@ -92,8 +94,9 @@ int UploadFileCommand::Do()
 		return SERVER_UPLOAD_ERROR;
 	}
 
-	bool dbError = !dbManager.Upload(query["file_name"], query["file_directory"], "1234");
-	if (dbError)
+	DbErrorCodes dbError = DB_NOERROR;
+	dbManager.Upload(query["file_name"], query["file_directory"], "1234", dbError);
+	if (dbError != DB_NOERROR)
 	{
 		query["error_code"] = to_string(SERVER_UPLOAD_ERROR);
 		netError = network.SendMsg(make_shared<map<string, string>>(query));
@@ -132,8 +135,9 @@ int DownloadFileCommand::Do()
 		return SERVER_AUTH_ERROR;
 	}
 
-	shared_ptr<InFile> file = dbManager.Download(query["file_name"], query["file_directory"]);
-	if (file == nullptr)
+	DbErrorCodes dbError = DB_NOERROR;
+	shared_ptr<InFile> file = dbManager.Download(query["file_name"], query["file_directory"], dbError);
+	if (dbError != DB_NOERROR)
 	{
 		query["error_code"] = to_string(SERVER_DOWNLOAD_ERROR);
 		int netError = network.SendMsg(make_shared<map<string, string>>(query));
@@ -182,7 +186,8 @@ int SendFileListCommand::Do()
 		return SERVER_LIST_ERROR;
 	}
 
-	map<string,string> list = dbManager.GetFileList(query["directory"]);
+	DbErrorCodes dbError = DB_NOERROR;
+	map<string,string> list = dbManager.GetFileList(query["directory"], dbError);
 	netError = network.SendMsg(make_shared<map<string, string>>(list));
 	if (netError)
 	{
@@ -208,7 +213,8 @@ int DeleteFileCommand::Do()
 		return SERVER_AUTH_ERROR;
 	}
 
-	int dbError = !dbManager.DeleteFile(query["file_name"], query["file_directory"]);
+	DbErrorCodes dbError = DB_NOERROR;
+	dbManager.DeleteFile(query["file_name"], query["file_directory"], dbError);
 	query["error_code"] = to_string(dbError);
 	int netError = network.SendMsg(make_shared<map<string, string>>(query));
 	if (netError)
@@ -235,7 +241,8 @@ int DeleteUserCommand::Do()
 		return SERVER_AUTH_ERROR;
 	}
 
-	int dbError = !dbManager.DeleteUser(query["username"], query["password"]);
+	DbErrorCodes dbError = DB_NOERROR;
+	dbManager.DeleteUser(query["username"], query["password"], dbError);
 	query["error_code"] = to_string(dbError);
 	int netError = network.SendMsg(make_shared<map<string, string>>(query));
 	if (netError)

@@ -121,7 +121,7 @@ std::map<std::string, std::string> FilesDatabaseManager::GetFileList(const std::
 void FilesDatabaseManager::SetPathToUsersStorage() {
     ////считываем из конфига путь к хранящимся файлам пользователей
     pt::ptree root;
-    pt::read_json("/etc/screamer_cloud_config.json", root);
+    pt::read_json("/etc/screamer_cloud.conf", root);
     string users_path = root.get<string>("users_storage");
 
     if (!fs::exists(users_path))

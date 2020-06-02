@@ -24,7 +24,7 @@ extern "C"
 
 #include <regex>
 #include "file.h"
-#include "cmd_codes.h"
+#include "error_codes.h"
 #include "logging.hpp"
 
 enum Msg{
