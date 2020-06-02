@@ -9,19 +9,14 @@ using namespace std;
 
 ClientApp::ClientApp(string IP, int port)
 {
-	_clientNetwork = new ClientNetwork(IP, port);
-	_file = nullptr;
 	ReadUserConfig();
+	_clientNetwork = make_shared<ClientNetwork>(IP, port);
+	_clientNetwork->Connection();
 }
 
-ClientApp::~ClientApp()
+shared_ptr<map<string, string>> ClientApp::ParseCmdArguments(int argc, char** argv)
 {
-	delete _clientNetwork;
-	delete _file;
-}
-
-void ClientApp::ParseCmdArguments(int argc, char** argv)
-{
+	map<string, string> clientRequest;
 	po::options_description desc("Allowed options");
 	desc.add_options()
 		("help,h", "produce help message")
@@ -39,83 +34,85 @@ void ClientApp::ParseCmdArguments(int argc, char** argv)
 
 	if (vm.count("help")) {
 		cout << desc << "\n";
-		return;
+		return make_shared<map<string, string>>(clientRequest);
 	}
 
 	if (vm.count("upload")) {
-		_filePath = fs::path(vm["upload"].as<vector<string>>()[0]);
 		fs::path serverPath(vm["upload"].as<vector<string>>()[1]);
-		_clientRequest["cmd_code"] = to_string(UPLOAD);
-		_clientRequest["file_name"] = serverPath.filename().string();
-		_clientRequest["file_directory"] = serverPath.parent_path().string();
-		return;
+		clientRequest["cmd_code"] = to_string(UPLOAD);
+		clientRequest["file_name"] = serverPath.filename().string();
+		clientRequest["file_directory"] = serverPath.parent_path().string();
+		clientRequest["client_file_path"] = vm["upload"].as<vector<string>>()[0];
+		return make_shared<map<string, string>>(clientRequest);
 	}
 
 	if (vm.count("download")) {
 		fs::path serverPath(vm["download"].as<vector<string>>()[0]);
-		_filePath = fs::path(vm["download"].as<vector<string>>()[1]);
-		_clientRequest["cmd_code"] = to_string(DOWNLOAD);
-		_clientRequest["file_name"] = serverPath.filename().string();
-		_clientRequest["file_directory"] = serverPath.parent_path().string();
-		return;
+		clientRequest["cmd_code"] = to_string(DOWNLOAD);
+		clientRequest["file_name"] = serverPath.filename().string();
+		clientRequest["file_directory"] = serverPath.parent_path().string();
+		clientRequest["client_file_path"] = vm["download"].as<vector<string>>()[1];
+		return make_shared<map<string, string>>(clientRequest);
 	}
 
 	if (vm.count("delete")) {
 		fs::path serverPath(vm["delete"].as<string>());
-		_clientRequest["cmd_code"] = to_string(DELETE_FILE);
-		_clientRequest["file_name"] = serverPath.filename().string();
-		_clientRequest["file_directory"] = serverPath.parent_path().string();
-		return;
+		clientRequest["cmd_code"] = to_string(DELETE_FILE);
+		clientRequest["file_name"] = serverPath.filename().string();
+		clientRequest["file_directory"] = serverPath.parent_path().string();
+		return make_shared<map<string, string>>(clientRequest);
 	}
 
 	if (vm.count("delete-user")) {
-		_clientRequest["cmd_code"] = to_string(DELETE_USER);
-		return;
+		clientRequest["cmd_code"] = to_string(DELETE_USER);
+		return make_shared<map<string, string>>(clientRequest);
 	}
 
 	if (vm.count("list")) {
-		_clientRequest["cmd_code"] = to_string(LIST);
-		_clientRequest["directory"] = vm["list"].as<std::string>();
-		return;
+		clientRequest["cmd_code"] = to_string(LIST);
+		clientRequest["directory"] = vm["list"].as<std::string>();
+		return make_shared<map<string, string>>(clientRequest);
 	}
 
 	if (vm.count("register")) {
-		_clientRequest["cmd_code"] = to_string(REGISTER);
-		return;
+		clientRequest["cmd_code"] = to_string(REGISTER);
+		return make_shared<map<string, string>>(clientRequest);
 	}
 
 	if (vm.count("login")) {
-		_clientRequest["cmd_code"] = to_string(LOGIN);
-		return;
+		clientRequest["cmd_code"] = to_string(LOGIN);
+		return make_shared<map<string, string>>(clientRequest);
 	}
+
+	return nullptr;
 }
 
-int ClientApp::ExecuteRequest()
+int ClientApp::ExecuteRequest(const shared_ptr<map<string, string>> &request)
 {
-	if (!_clientRequest.count("cmd_code")) return -3;
+	if (!request->count("cmd_code")) return -3;
 
-	switch (stoi(_clientRequest["cmd_code"]))
+	switch (stoi(request->at("cmd_code")))
 	{
 	case UPLOAD:
-		return UploadFile();
+		return UploadFile(request);
 	case DOWNLOAD:
-		return DownloadFile();
+		return DownloadFile(request);
 	case DELETE_FILE:
-		return DeleteFile();
+		return DeleteFile(request);
 	case DELETE_USER:
-		return DeleteUser();
+		return DeleteUser(request);
 	case LIST:
-		return List();
+		return List(request);
 	case REGISTER:
-		return RegisterUser();
+		return RegisterUser(request);
 	case LOGIN:
-		return LoginUser();
+		return LoginUser(request);
 	default:
 		return -2;
 	}
 }
 
-int ClientApp::UploadFile()
+int ClientApp::UploadFile(const shared_ptr<map<string, string>> &request)
 {
 	// TODO: добавить проверку на существование файла
 	if (!_user.IsLoggedIn())
@@ -123,46 +120,56 @@ int ClientApp::UploadFile()
 		cout << "You are not logged in" << endl;
 		return -1;
 	}
-	_file = new InFile(_filePath.string());
-	_clientRequest["username"] = _user.login;
-	_clientRequest["password"] = _user.password;
-	_clientRequest["file_size"] = to_string(_file->GetSize());
-	_clientRequest["error_code"] = "0";
 
-	Request();
-	if (ValidateResponse())
+	fs::path path(request->at("client_file_path"));
+	request->erase("client_file_path");
+	auto inFile = make_shared<InFile>(path.string());
+
+	request->insert({"username", _user.login});
+	request->insert({"password", _user.password});
+	request->insert({"file_size", to_string(inFile->GetSize())});
+	request->insert({"error_code", "0"});
+
+	shared_ptr<map<string, string>> response = Request(request);
+	if (ValidateResponse(response, UPLOAD))
 	{
 		cout << "Uploading file...\n";
-		thread progressBar(&ClientApp::PrintProgress, this, consoleWidth);
-		_clientNetwork->SendFile(dynamic_cast<InFile*>(_file));
+		thread progressBar(&ClientApp::PrintProgress, this, inFile, consoleWidth);
+		_clientNetwork->SendFile(inFile);
 		progressBar.join();
-		cout << "Upload success\n";
+		response = _clientNetwork->RecvMsg();
+		if (response->at("error_code") == "0")
+			cout << "Upload success\n";
+		else
+			cout << "Upload failed\n";
 		return 0;
 	}
 	return -1;
 }
 
-int ClientApp::DownloadFile()
+int ClientApp::DownloadFile(const shared_ptr<map<string, string>> &request)
 {
 	if (!_user.IsLoggedIn())
 	{
 		cout << "You are not logged in" << endl;
 		return -1;
 	}
-	_clientRequest["username"] = _user.login;
-	_clientRequest["password"] = _user.password;
-	_clientRequest["error_code"] = "0";
+	request->insert({"username", _user.login});
+	request->insert({"password", _user.password});
+	request->insert({"error_code", "0"});
+	fs::path path(request->at("client_file_path"));
+	request->erase("client_file_path");
 
-	Request();
-	if (ValidateResponse())
+	shared_ptr<map<string, string>> response = Request(request);
+	if (ValidateResponse(response, DOWNLOAD))
 	{
-		stringstream sstream(_serverResponse["file_size"]);
+		stringstream sstream(response->at("file_size"));
 		size_t size = 0;
 		sstream >> size;
-		_file = new OutFile(size, _filePath.parent_path().string(), _filePath.filename().string());
+		auto outFile = make_shared<OutFile>(size, path.parent_path().string(), path.filename().string()); //OutFile(size, _filePath.parent_path().string(), _filePath.filename().string());
 		cout << "Downloading file...\n";
-		thread progressBar(&ClientApp::PrintProgress, this, consoleWidth);
-		_clientNetwork->RecvFile(dynamic_cast<OutFile*>(_file));
+		thread progressBar(&ClientApp::PrintProgress, this, outFile, consoleWidth);
+		_clientNetwork->RecvFile(outFile);
 		progressBar.join();
 		cout << "Download success\n";
 		return 0;
@@ -170,19 +177,19 @@ int ClientApp::DownloadFile()
 	return -1;
 }
 
-int ClientApp::DeleteFile()
+int ClientApp::DeleteFile(const shared_ptr<map<string, string>> &request)
 {
 	if (!_user.IsLoggedIn())
 	{
 		cout << "You are not logged in" << endl;
 		return -1;
 	}
-	_clientRequest["username"] = _user.login;
-	_clientRequest["password"] = _user.password;
-	_clientRequest["error_code"] = "0";
+	request->insert({"username", _user.login});
+	request->insert({"password", _user.password});
+	request->insert({"error_code", "0"});
 
-	Request();
-	if (ValidateResponse())
+	shared_ptr<map<string, string>> response = Request(request);
+	if (ValidateResponse(response, DELETE_FILE))
 	{
 		cout << "File deleted successfully" << endl;
 		return 0;
@@ -194,19 +201,19 @@ int ClientApp::DeleteFile()
 	}
 }
 
-int ClientApp::DeleteUser()
+int ClientApp::DeleteUser(const shared_ptr<map<string, string>> &request)
 {
 	if (!_user.IsLoggedIn())
 	{
 		cout << "You are not logged in" << endl;
 		return -1;
 	}
-	_clientRequest["username"] = _user.login;
-	_clientRequest["password"] = _user.password;
-	_clientRequest["error_code"] = "0";
+	request->insert({"username", _user.login});
+	request->insert({"password", _user.password});
+	request->insert({"error_code", "0"});
 
-	Request();
-	if (ValidateResponse())
+	shared_ptr<map<string, string>> response = Request(request);
+	if (ValidateResponse(response, DELETE_USER))
 	{
 		cout << "User deleted successfully" << endl;
 		return 0;
@@ -218,28 +225,28 @@ int ClientApp::DeleteUser()
 	}
 }
 
-int ClientApp::List()
+int ClientApp::List(const shared_ptr<map<string, string>> &request)
 {
 	if (!_user.IsLoggedIn())
 	{
 		cout << "You are not logged in" << endl;
 		return -1;
 	}
-	_clientRequest["username"] = _user.login;
-	_clientRequest["password"] = _user.password;
-	_clientRequest["error_code"] = "0";
+	request->insert({"username", _user.login});
+	request->insert({"password", _user.password});
+	request->insert({"error_code", "0"});
 
-	Request();
-	if (ValidateResponse())
+	shared_ptr<map<string, string>> response = Request(request);
+	if (ValidateResponse(response, LIST))
 	{
-		map<string, string>* list = _clientNetwork->RecvMsg();
-		PrintFileList(*list);
+		shared_ptr<map<string, string>> list = _clientNetwork->RecvMsg();
+		PrintFileList(list);
 	}
 
-	// TODO:: вывод списка файлов
+	return 0;
 }
 
-int ClientApp::RegisterUser()
+int ClientApp::RegisterUser(const shared_ptr<map<string, string>> &request)
 {
 	string username;
 	string password;
@@ -252,12 +259,12 @@ int ClientApp::RegisterUser()
 	_user.login = username;
 	_user.password = password;
 
-	_clientRequest["username"] = username;
-	_clientRequest["password"] = password;
-	_clientRequest["error_code"] = "0";
+	request->insert({"username", _user.login});
+	request->insert({"password", _user.password});
+	request->insert({"error_code", "0"});
 
-	Request();
-	if (ValidateResponse())
+	shared_ptr<map<string, string>> response = Request(request);
+	if (ValidateResponse(response, REGISTER))
 	{
 		cout << "Registration success\n";
 		WriteUserConfig();
@@ -270,7 +277,7 @@ int ClientApp::RegisterUser()
 	}
 }
 
-int ClientApp::LoginUser()
+int ClientApp::LoginUser(const shared_ptr<map<string, string>> &request)
 {
 	string username;
 	string password;
@@ -283,13 +290,12 @@ int ClientApp::LoginUser()
 	_user.login = username;
 	_user.password = password;
 
-	_clientRequest["username"] = username;
-	_clientRequest["password"] = password;
-	_clientRequest["cmd_code"] = to_string(LOGIN);
-	_clientRequest["error_code"] = "0";
+	request->insert({"username", _user.login});
+	request->insert({"password", _user.password});
+	request->insert({"error_code", "0"});
 
-	Request();
-	if (ValidateResponse())
+	shared_ptr<map<string, string>> response = Request(request);
+	if (ValidateResponse(response, LOGIN))
 	{
 		cout << "Login success\n";
 		WriteUserConfig();
@@ -302,43 +308,46 @@ int ClientApp::LoginUser()
 	}
 }
 
-void ClientApp::Request()
+shared_ptr<map<string, string>> ClientApp::Request(const shared_ptr<map<string, string>> &request)
 {
-	_clientNetwork->SendMsg(_clientRequest);
-	_serverResponse = std::move(*_clientNetwork->RecvMsg());
+	_clientNetwork->SendMsg(request);
+	return _clientNetwork->RecvMsg();
 }
 
-bool ClientApp::ValidateResponse()
+bool ClientApp::ValidateResponse(const shared_ptr<map<string, string>> &response, int cmd_code)
 {
-	if (!_serverResponse.count("cmd_code"))
+	if (!response->count("cmd_code"))
 		return false;
-	if (_serverResponse["cmd_code"] != _clientRequest["cmd_code"])
+	if (response->at("cmd_code") != to_string(cmd_code))
 		return false;
-	if (!_serverResponse.count("error_code"))
+	if (!response->count("error_code"))
 		return false;
-	if (_serverResponse["error_code"] == "0")
+	if (response->at("error_code") == "0")
 		return true;
 
 	return false;
 }
 
-void ClientApp::PrintProgress(int outputWidth)
+void ClientApp::PrintProgress(const shared_ptr<File> &file, int outputWidth)
 {
-	int progress = 0;
-	while (_file->GetProgress() < 100)
+	while (file->GetProgress() < 100)
 	{
-		progress = (float(_file->GetProgress()) / 100) * outputWidth;
+		int progress = (float(file->GetProgress()) / 100) * outputWidth;
 		cout << string(outputWidth + 5, '\b');
-		cout << string(progress, '#') << string(outputWidth - progress, '_') << ' ' << _file->GetProgress() << '%';
+		string downloadedString(progress, '#');
+		string leftString(outputWidth - progress, '_');
+		cout << downloadedString << leftString << ' ' << file->GetProgress() << '%';
 		cout.flush();
 		this_thread::sleep_for(chrono::milliseconds(500));
 	}
+	cout << string(outputWidth + 5, '\b');
+	cout << string(outputWidth, '#')  << " 100%";
 	cout << endl;
 }
 
-void ClientApp::PrintFileList(map<string, string> list)
+void ClientApp::PrintFileList(const std::shared_ptr<std::map<std::string, std::string>> &list)
 {
-	for (auto const& x : list)
+	for (auto const& x : *list)
 	{
 		if (x.second == "dir")
 			cout << x.first << '/' <<endl;
@@ -364,7 +373,9 @@ void ClientApp::ReadUserConfig(string configPath)
 	}
 	catch (std::exception &exc)
 	{
-		LoginUser();
+		map<string, string> clientRequest;
+		clientRequest["cmd_code"] = to_string(LOGIN);
+		LoginUser(make_shared<map<string, string>>(clientRequest));
 	}
 }
 
@@ -372,7 +383,7 @@ void ClientApp::WriteUserConfig(string configPath)
 {
 	pt::ptree root;
 
-	string  info;
+	string info;
 	root.put("user.username", _user.login);
 	root.put("user.password", _user.password);
 

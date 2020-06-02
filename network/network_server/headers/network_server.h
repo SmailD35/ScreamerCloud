@@ -8,16 +8,16 @@
 #include <boost/serialization/map.hpp>
 #include <boost/archive/text_iarchive.hpp>
 #include <boost/archive/text_oarchive.hpp>
+#include <memory>
 #include "file.h"
 //#include "../../tests/headers/test_network_client.h"
 
-enum CmdCodeClient {HELP_CLI,
-		UPLOAD_CLI,
-		DOWNLOAD_CLI,
-		DELETE_CLI,
-		LIST_CLI,
-		REGISTER_CLI,
-		LOGIN_CLI};
+enum ErrorNetworkCode {
+	ERROR_CONNECTION = -1,
+	ERROR_RECV = -2,
+	ERROR_SEND = -3,
+	ERROR_INPUT_MAP = -4,
+};
 
 class ConnectionNetwork
 {
@@ -26,21 +26,23 @@ protected:
 	std::string _buf_recv;
 
 private:
-	void Serialize(std::map<std::string, std::string> &server_answer);
-	std::map<std::string, std::string> * Deserialize(int buf_size);
-	std::size_t Send();
-	std::size_t Recv();
-	//boost::shared_pointer<boost::asio::ip::tcp::socket>
-	boost::asio::ip::tcp::socket * socket;
+	void Serialize(const std::shared_ptr<std::map<std::string, std::string>> &server_answer);
+	std::shared_ptr<std::map<std::string, std::string>> Deserialize();
+	int Send();
+	int Recv();
+	boost::shared_ptr<boost::asio::ip::tcp::socket> socket;
+	//boost::asio::ip::tcp::socket * socket;
 
 public:
-
-	ConnectionNetwork(boost::asio::ip::tcp::socket *sock);
+	ConnectionNetwork(boost::shared_ptr<boost::asio::ip::tcp::socket> sock);
+	//ConnectionNetwork(boost::asio::ip::tcp::socket * sock);
 	~ConnectionNetwork();
-	void SendMsg(std::map<std::string, std::string> &client_query);
-	std::map<std::string, std::string> * RecvMsg();
-	int SendFile(InFile * file_obj);
-	int RecvFile(OutFile * file_obj);
+	void CloseConnection();
+	int SendMsg(const std::shared_ptr<std::map<std::string, std::string>> &client_query);
+	std::shared_ptr<std::map<std::string, std::string>> RecvMsg();
+	int SendFile(const std::shared_ptr<InFile> &file_obj);
+	int RecvFile(const std::shared_ptr<OutFile> &file_obj);
+	std::string GetClientIP();
 };
 
 
@@ -48,7 +50,7 @@ class ServerNetwork
 {
 private:
 	boost::asio::io_service _io_service;
-	boost::asio::ip::tcp::acceptor * _acceptor;
+	boost::asio::ip::tcp::acceptor _acceptor;
 	int _port;
 	std::string _IP;
 

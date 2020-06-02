@@ -1,4 +1,3 @@
-#include <iostream>
 #include "server.h"
 #include <thread>
 
@@ -6,7 +5,7 @@ using namespace std;
 
 int main()
 {
-	auto server = new Server();
+	auto server = make_shared<Server>();
 
 	thread connectionsLoop(&Server::ConnectionsLoop, server);
 	thread queriesLoop(&Server::QueriesLoop, server);
