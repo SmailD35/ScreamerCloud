@@ -9,7 +9,8 @@ using namespace std;
 
 ClientApp::ClientApp(string IP, int port)
 {
-	_clientNetwork = make_shared<ClientNetwork>(IP, port);//new ClientNetwork(IP, port);
+	ReadUserConfig();
+	_clientNetwork = make_shared<ClientNetwork>(IP, port);
 	_clientNetwork->Connection();
 }
 
@@ -122,7 +123,7 @@ int ClientApp::UploadFile(const shared_ptr<map<string, string>> &request)
 
 	fs::path path(request->at("client_file_path"));
 	request->erase("client_file_path");
-	auto inFile = make_shared<InFile>(path.string());//InFile(_filePath.string());
+	auto inFile = make_shared<InFile>(path.string());
 
 	request->insert({"username", _user.login});
 	request->insert({"password", _user.password});
@@ -136,7 +137,11 @@ int ClientApp::UploadFile(const shared_ptr<map<string, string>> &request)
 		thread progressBar(&ClientApp::PrintProgress, this, inFile, consoleWidth);
 		_clientNetwork->SendFile(inFile);
 		progressBar.join();
-		cout << "Upload success\n";
+		response = _clientNetwork->RecvMsg();
+		if (response->at("error_code") == "0")
+			cout << "Upload success\n";
+		else
+			cout << "Upload failed\n";
 		return 0;
 	}
 	return -1;
