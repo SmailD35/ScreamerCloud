@@ -14,6 +14,7 @@ int main(int argc, char** argv)
 		auto C = S.StandConnection();
 
 		map = C.RecvMsg();
+		std::cout << C.GetClientIP() << std::endl;
 		if (map == nullptr)
 		{
 			std::cout << "null" << std::endl;

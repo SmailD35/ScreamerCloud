@@ -164,4 +164,19 @@ ConnectionNetwork::~ConnectionNetwork()
 void ConnectionNetwork::CloseConnection()
 {
 	socket->close();
+}
+
+std::string ConnectionNetwork::GetClientIP()
+{
+	std::string client_IP;
+	try
+	{
+		client_IP = socket->remote_endpoint().address().to_string();
+	}
+	catch (std::exception& e)
+	{
+		cout << e.what() << endl;
+		return "";
+	}
+	return client_IP;
 };

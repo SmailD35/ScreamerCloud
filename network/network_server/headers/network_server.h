@@ -42,6 +42,7 @@ public:
 	std::shared_ptr<std::map<std::string, std::string>> RecvMsg();
 	int SendFile(const std::shared_ptr<InFile> &file_obj);
 	int RecvFile(const std::shared_ptr<OutFile> &file_obj);
+	std::string GetClientIP();
 };
 
 
