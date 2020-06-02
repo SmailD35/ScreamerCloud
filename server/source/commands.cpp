@@ -28,7 +28,7 @@ void RegisterUserCommand::Do()
 	ConnectionNetwork network = _userSession._userConnection;
 	map<string,string> query = _userSession._userQuery;
 
-	bool errorCode = !dbManager.Register(query["username"], query["password"]);
+	bool errorCode = !dbManager.Register(query["username"], query["password"], <#initializer#>);
 	query["error_code"] = to_string(errorCode);
 
 	network.SendMsg(query);
@@ -45,7 +45,7 @@ void LoginUserCommand::Do()
 	ConnectionNetwork network = _userSession._userConnection;
 	map<string,string> query = _userSession._userQuery;
 
-	bool errorCode = !dbManager.Authorize(query["username"], query["password"]);
+	bool errorCode = !dbManager.Authorize(query["username"], query["password"], <#initializer#>);
 	query["error_code"] = to_string(errorCode);
 
 	network.SendMsg(query);
@@ -62,7 +62,7 @@ void UploadFileCommand::Do()
 	ConnectionNetwork network = _userSession._userConnection;
 	map<string,string> query = _userSession._userQuery;
 
-	bool error = !dbManager.Authorize(query["username"], query["password"]);
+	bool error = !dbManager.Authorize(query["username"], query["password"], <#initializer#>);
 	query["error_code"] = to_string(error);
 
 	network.SendMsg(query);
@@ -94,7 +94,7 @@ void DownloadFileCommand::Do()
 	ConnectionNetwork network = _userSession._userConnection;
 	map<string,string> query = _userSession._userQuery;
 
-	bool error = !dbManager.Authorize(query["username"], query["password"]);
+	bool error = !dbManager.Authorize(query["username"], query["password"], <#initializer#>);
 	shared_ptr<InFile> file = dbManager.Download(query["file_name"], query["file_directory"]);
 	query["file_size"] = to_string(file->GetSize());
 	query["error_code"] = to_string(error);
@@ -120,7 +120,7 @@ void SendFileListCommand::Do()
 	ConnectionNetwork network = _userSession._userConnection;
 	map<string,string> query = _userSession._userQuery;
 
-	bool error = !dbManager.Authorize(query["username"], query["password"]);
+	bool error = !dbManager.Authorize(query["username"], query["password"], <#initializer#>);
 	query["error_code"] = to_string(error);
 	network.SendMsg(query);
 
@@ -142,7 +142,7 @@ void DeleteFileCommand::Do()
 	ConnectionNetwork network = _userSession._userConnection;
 	map<string,string> query = _userSession._userQuery;
 
-	bool error = !dbManager.Authorize(query["username"], query["password"]);
+	bool error = !dbManager.Authorize(query["username"], query["password"], <#initializer#>);
 	if (error == 0)
 	{
 		error = !dbManager.DeleteFile(query["file_name"], query["file_directory"]);
@@ -162,7 +162,7 @@ void DeleteUserCommand::Do()
 	ConnectionNetwork network = _userSession._userConnection;
 	map<string,string> query = _userSession._userQuery;
 
-	bool error = !dbManager.Authorize(query["username"], query["password"]);
+	bool error = !dbManager.Authorize(query["username"], query["password"], <#initializer#>);
 	if (error == 0)
 	{
 		error = !dbManager.DeleteUser(query["username"], query["password"]);

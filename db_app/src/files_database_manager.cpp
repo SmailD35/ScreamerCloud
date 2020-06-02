@@ -2,6 +2,7 @@
 // Created by ekaterina on 14.04.2020.
 //
 
+#include <cmd_codes.h>
 #include "../inc/files_database_manager.h"
 
 using namespace std;
@@ -30,37 +31,45 @@ shared_ptr<InFile> FilesDatabaseManager::GetFilePtr(int file_ID) {
 	return in_file;
 }
 
-bool FilesDatabaseManager::UploadFile(const string &file_name, const string &dir_name, const string &hash_sum) {
+bool
+FilesDatabaseManager::UploadFile(const std::string &file_name, const std::string &dir_name, const std::string &hash_sum,
+                                 DbErrorCodes &error) {
     try
     {
-        int file_ID = _databaseConnection.AddFileRecord(file_name, dir_name, hash_sum);
+        int file_ID = _databaseConnection.AddFileRecord(file_name, dir_name, hash_sum, error);
 
+        if (file_ID == FAIL)
+            return false;
+        BOOST_LOG_TRIVIAL(debug) << "file_ID " << file_ID << endl;
         //////для проверки тестов
        // boost::filesystem::ofstream( _path_users_storage + _userDirectory + to_string(file_ID));
 
         /////раскоментировать при соединении программы с свервером
         fs::path path_to_file(_path_users_storage + '/' + _userDirectory + '/' + file_name);
+        BOOST_LOG_TRIVIAL(debug)<< "path_to_file " << path_to_file << endl;
         fs::path new_path(_path_users_storage + '/' + _userDirectory + '/' + to_string(file_ID));
+        BOOST_LOG_TRIVIAL(debug) << "new path " << new_path << endl;
         rename(path_to_file, new_path);
         return true;
     }
     catch(exception &exc)
     {
         BOOST_LOG_TRIVIAL(error) << exc.what();
+        error = DB_ADDING_FILE_RECORD;
         return false;
     }
 }
 
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////
-////тут продумать систему кодов ошибок (можно сделать еще один аргумент функций, в который будет записываться код ошибки)
-shared_ptr<InFile> FilesDatabaseManager::DownloadFile(string const& file_name, string const& dir_name) {
+std::shared_ptr<InFile>
+FilesDatabaseManager::DownloadFile(const std::string &file_name, const std::string &dir_name, DbErrorCodes &error) {
 	int fileID;
 	try {
-		fileID = _databaseConnection.CheckFileID(file_name, dir_name);
+		fileID = _databaseConnection.CheckFileID(file_name, dir_name, error);
 	}
 	catch (exception &exc) {
 		BOOST_LOG_TRIVIAL(error) << exc.what();
+		error = DB_APPEAL_ERROR;
 		return nullptr;
 	}
 
@@ -68,24 +77,26 @@ shared_ptr<InFile> FilesDatabaseManager::DownloadFile(string const& file_name, s
     return in_file;
 }
 
-bool FilesDatabaseManager::DeleteFile(const string &file_name, const string &dir_name) {
+bool FilesDatabaseManager::DeleteFile(const std::string &file_name, const std::string &dir_name, DbErrorCodes &error) {
     int fileID;
     try {
-         fileID = _databaseConnection.CheckFileID(file_name, dir_name);
+         fileID = _databaseConnection.CheckFileID(file_name, dir_name, error);
          if (fileID == FAIL)
              return false;
     }
     catch (exception &exc) {
         BOOST_LOG_TRIVIAL(error) << exc.what();
+        error = DB_APPEAL_ERROR;
         return false;
     }
 
     try {
-        _databaseConnection.DeleteFileRecord(fileID);
+        _databaseConnection.DeleteFileRecord(fileID, error);
         fs::remove(_path_users_storage + '/' + _userDirectory + '/' + to_string(fileID));
         return true;
     }
     catch (exception &exc) {
+        error = DB_DELETING_FILE_ERROR;
         BOOST_LOG_TRIVIAL(error) << exc.what();
         return false;
     }
@@ -94,13 +105,14 @@ bool FilesDatabaseManager::DeleteFile(const string &file_name, const string &dir
 
 
 ///нерекурсивный вывод файлов соответствующей директории
-map<string, string> FilesDatabaseManager::GetFileList(string const& dir_name) {
+std::map<std::string, std::string> FilesDatabaseManager::GetFileList(const std::string &dir_name, DbErrorCodes &error) {
     map<string, string> file_list;
     try {
-        file_list = _databaseConnection.GetFileList(dir_name);
+        file_list = _databaseConnection.GetFileList(dir_name, error);
     }
     catch (exception &exc) {
         BOOST_LOG_TRIVIAL(error) << exc.what();
+        error = DB_APPEAL_ERROR;
     }
     return file_list;
 }
@@ -117,43 +129,48 @@ void FilesDatabaseManager::SetPathToUsersStorage() {
     _path_users_storage = users_path;
 }
 
-bool FilesDatabaseManager::CheckExistingFile(const std::string &file_name, const std::string &dir_name) {
-    return _databaseConnection.CheckFileID(file_name, dir_name) != 0;
+bool FilesDatabaseManager::CheckExistingFile(const std::string &file_name, const std::string &dir_name,
+                                             DbErrorCodes &error) {
+    return _databaseConnection.CheckFileID(file_name, dir_name, error) != 0;
 }
 
 string  FilesDatabaseManager::GetPathToUsersStorage() { return _path_users_storage; }
 
-string FilesDatabaseManager::GetPublicLink(const string &file_name, const string &dir_name) {
+std::string
+FilesDatabaseManager::GetPublicLink(const std::string &file_name, const std::string &dir_name, DbErrorCodes &error) {
     string file_link;
     int fileID;
     try {
-        fileID = _databaseConnection.CheckFileID(file_name, dir_name);
+        fileID = _databaseConnection.CheckFileID(file_name, dir_name, error);
         if (fileID == FAIL)
-            return file_link; ///error code
+            return file_link;
     }
     catch (exception &exc) {
         BOOST_LOG_TRIVIAL(error) << exc.what();
-        return file_link; //error code
+        error = DB_APPEAL_ERROR;
+        return file_link;
     }
 
     try {
-        file_link = _databaseConnection.GetPublicLink(fileID);
+        file_link = _databaseConnection.GetPublicLink(fileID, error);
         return file_link;
     }
     catch (exception &exc) {
         BOOST_LOG_TRIVIAL(error) << exc.what();
-        return file_link; //error code
+        error = DB_APPEAL_ERROR;
+        return file_link;
     }
 }
 
 
-std::shared_ptr<InFile> FilesDatabaseManager::DownloadFileByLink(const std::string &link)
+std::shared_ptr<InFile> FilesDatabaseManager::DownloadFileByLink(const std::string &link, DbErrorCodes &error)
 {
     int fileID;
     try {
-        fileID = _databaseConnection.CheckFileIDByLink(link);
+        fileID = _databaseConnection.CheckFileIDByLink(link, error);
     }
     catch (exception &exc) {
+        error = DB_APPEAL_ERROR;
         BOOST_LOG_TRIVIAL(error) << exc.what();
         return nullptr;
     }

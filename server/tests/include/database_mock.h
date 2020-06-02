@@ -1,6 +1,7 @@
 #ifndef SERVER_DATABASE_MOCK_H
 #define SERVER_DATABASE_MOCK_H
 
+#include <cmd_codes.h>
 #include "gmock/gmock.h"
 
 class DatabaseManager
@@ -8,8 +9,8 @@ class DatabaseManager
 public:
 	virtual ~DatabaseManager() {};
 	virtual string GetUserDir() = 0;
-    virtual int Register(string login, string password) = 0;
-    virtual int Authorize(string login, string password) = 0;
+    virtual bool Register(const std::string &login, const std::string &password, DbErrorCodes &error) = 0;
+    virtual bool Authorize(const std::string &login, const std::string &password, DbErrorCodes &error) = 0;
     virtual int DeleteUser(string login, string password) = 0;
     virtual int UploadFile(string file_name, string dir_name) = 0;
     virtual FILE* DownloadFile() = 0;
