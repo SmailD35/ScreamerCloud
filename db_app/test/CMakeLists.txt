@@ -35,7 +35,7 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 endif()
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-    target_link_libraries(db_app_test gtest_main gmock_main libdb_app.so)
+    target_link_libraries(db_app_test gtest_main gmock_main libdb_app.so ${Boost_LIBRARIES})
 endif()
 #add_executable(db_app_test ../src/database_wrapper.cpp ../src/users_database_manager.cpp ../src/files_database_manager.cpp ../src/database_manager.cpp ../inc/database_manager.h test.cpp )
 #target_link_libraries(db_app_test gtest_main gmock_main pq ${Boost_LIBRARIES})

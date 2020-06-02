@@ -24,6 +24,7 @@ extern "C"
 
 #include <regex>
 #include "file.h"
+#include "cmd_codes.h"
 #include "logging.hpp"
 
 enum Msg{
@@ -35,8 +36,6 @@ enum DBType{
     USERS_DB,
     FILES_DB
 };
-
-////добавить логирование и чтение данных из конфиг-файла
 
 class DatabaseWrapper {
 private:
@@ -61,25 +60,30 @@ public:
 
     void SetUserID(int userID);
 
-    int CheckUserID(const std::string &login, const std::string &password);
+    int CheckUserID(const std::string &login, const std::string &password, DbErrorCodes &error);
 
-    int AddUserRecord(const std::string &login, const std::string &password);
+    int AddUserRecord(const std::string &login, const std::string &password, DbErrorCodes &error);
 
-    void DeleteUserRecord(int userID);
+    void DeleteUserRecord(int userID, DbErrorCodes &error);
 
-    bool CheckExistingLogin(const std::string &login);
+    bool CheckExistingLogin(const std::string &login, DbErrorCodes &error);
 
     //------------------------------------------------------------------------------
 
-    int CheckFileID(const std::string &file_name, const std::string &dir_name);
+    int CheckFileID(const std::string &file_name, const std::string &dir_name, DbErrorCodes &error);
 
-    int AddFileRecord(const std::string &file_name, const std::string &dir_name, const std::string &hash_sum);
+    int AddFileRecord(const std::string &file_name, const std::string &dir_name, const std::string &hash_sum,
+                      DbErrorCodes &error);
 
-    void DeleteFileRecord(int fileID);
+    void DeleteFileRecord(int fileID, DbErrorCodes &error);
 
-    void DeleteAllFiles();
+    void DeleteAllFiles(DbErrorCodes &error);
 
-    std::map <std::string, std::string> GetFileList(std::string const& dir_name);
+    std::map<std::string, std::string> GetFileList(std::string const &dir_name, DbErrorCodes &error);
+
+    std::string GetPublicLink(int fileID, DbErrorCodes &error);
+
+    int CheckFileIDByLink(const std::string &link, DbErrorCodes &error);
 };
 
 

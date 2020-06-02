@@ -2,6 +2,7 @@
 // Created by ekaterina on 14.04.2020.
 //
 
+#include <cmd_codes.h>
 #include "../inc/users_database_manager.h"
 using namespace std;
 namespace fs = boost::filesystem;
@@ -13,14 +14,16 @@ UsersDatabaseManager::UsersDatabaseManager() {
     SetPathToUsersStorage();
 }
 
-int UsersDatabaseManager::RegisterUser(string const& login, string const& password) {
+int UsersDatabaseManager::RegisterUser(const std::string &login, const std::string &password, DbErrorCodes &error) {
     //инициализируем userID_
     try {
-        if (!_databaseConnection.CheckExistingLogin(login))
+        if (!_databaseConnection.CheckExistingLogin(login, error))
         {
             try {
-                int add_result = _databaseConnection.AddUserRecord(login, password);
+                int add_result = _databaseConnection.AddUserRecord(login, password, error);
                 _userID = add_result;
+                if (add_result == FAIL)
+                    return FAIL;
                 _databaseConnection.SetUserID(add_result);
 
 				fs::create_directory(_path_users_storage + '/' + to_string(add_result));
@@ -28,6 +31,7 @@ int UsersDatabaseManager::RegisterUser(string const& login, string const& passwo
             }
             catch (exception &exc) {
                 BOOST_LOG_TRIVIAL(error) << exc.what();
+                error = DB_REGISTRATION_ERROR;
                 return FAIL;
             }
         }
@@ -35,14 +39,15 @@ int UsersDatabaseManager::RegisterUser(string const& login, string const& passwo
             return FAIL;
     }
     catch (exception &exc) {
-        BOOST_LOG_TRIVIAL(debug) << exc.what();
+        BOOST_LOG_TRIVIAL(error) << exc.what();
+        error = DB_APPEAL_ERROR;
         return FAIL;
     }
 }
 
-int UsersDatabaseManager::AuthorizeUser(string const& login, string const& password) {
+int UsersDatabaseManager::AuthorizeUser(const std::string &login, const std::string &password, DbErrorCodes &error) {
     try {
-        int userID = _databaseConnection.CheckUserID(login, password);
+        int userID = _databaseConnection.CheckUserID(login, password, error);
         if (userID == FAIL)
             return FAIL;
         if (_userID == NIL)
@@ -52,45 +57,55 @@ int UsersDatabaseManager::AuthorizeUser(string const& login, string const& passw
         return _userID;
     }
     catch (exception &exc) {
-        BOOST_LOG_TRIVIAL(debug) << exc.what();
+        BOOST_LOG_TRIVIAL(error) << exc.what();
+        error = DB_APPEAL_ERROR;
         return FAIL;
     }
 }
 
-bool UsersDatabaseManager::DeleteUser(const string &login, const string &password) {
+bool UsersDatabaseManager::DeleteUser(const std::string &login, const std::string &password, DbErrorCodes &error) {
     try {
-        int userID = _databaseConnection.CheckUserID(login, password);
+        int userID = _databaseConnection.CheckUserID(login, password, error);
         if (userID != FAIL) {
-            try {
-                _databaseConnection.DeleteUserRecord(userID);
-                try {
-                    _databaseConnection.DeleteAllFiles();
-                    fs::remove_all(_path_users_storage + '/' + to_string(userID));
-                }
-                catch (exception &exc) {
-                    BOOST_LOG_TRIVIAL(error) << exc.what();
-                    return false;
-                }
-                return true;
-            }
-            catch (exception &exc) {
-                BOOST_LOG_TRIVIAL(error) << exc.what();
-                return false;
-            }
+            return DeleteUserInternal(userID, error);
         }
         else
             return false;
     }
     catch (exception &exc) {
-        BOOST_LOG_TRIVIAL(debug) << exc.what();
+        BOOST_LOG_TRIVIAL(error) << exc.what();
+        error = DB_DELETING_USER_ERROR;
         return false;
     }
 }
 
+
+bool UsersDatabaseManager::DeleteUserInternal(int userID, DbErrorCodes &error) {
+    try {
+        _databaseConnection.DeleteUserRecord(userID, error);
+        try {
+            _databaseConnection.DeleteAllFiles(error);
+            fs::remove_all(_path_users_storage + '/' + to_string(userID));
+        }
+        catch (exception &exc) {
+            error = DB_DELETING_ALL_FILES_ERROR;
+            BOOST_LOG_TRIVIAL(error) << exc.what();
+            return false;
+        }
+        return true;
+    }
+    catch (exception &exc) {
+        error = DB_DELETING_USER_ERROR;
+        BOOST_LOG_TRIVIAL(error) << exc.what();
+        return false;
+    }
+}
+
+
 void UsersDatabaseManager::SetPathToUsersStorage() {
 	////считываем из конфига путь к хранящимся файлам пользователей
 	pt::ptree root;
-	pt::read_json("../config.json", root);
+	pt::read_json("/etc/screamer_cloud_config.json", root);
 	string users_path = root.get<string>("users_storage");
 
 	if (!fs::exists(users_path))

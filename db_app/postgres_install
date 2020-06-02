@@ -41,3 +41,15 @@ table = files_data
 |ID_user (integer) | user_path (varchar(80)) | file_name (varchar(80)) | hash (integer) | ID_file (integer unique) |
 
 create table files_data (ID_user integer, user_path varchar(80), file_name varchar(80), hash integer, ID_file integer unique);
+
+
+////////new
+
+|ID_user (integer) | user_path (varchar(80)) | file_name (varchar(80)) | hash (integer) | ID_file (integer unique) | public_link (integer unique)
+
+create table files_data (ID_user integer, user_path varchar(80), file_name varchar(80), hash integer, ID_file integer unique, public_link integer unique);
+
+
+
+
+psql -U screamer_cloud -h localhost -d users_db

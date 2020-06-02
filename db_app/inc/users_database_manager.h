@@ -12,19 +12,22 @@ private:
     int _userID;
 
     DatabaseWrapper _databaseConnection;
+
 	std::string _path_users_storage;
+
 	void SetPathToUsersStorage();
 
+    bool DeleteUserInternal(int userID, DbErrorCodes &error);
 public:
     UsersDatabaseManager();
 
     ~UsersDatabaseManager() = default;
 
-	int RegisterUser(const std::string &login, const std::string &password);
+	int RegisterUser(const std::string &login, const std::string &password, DbErrorCodes &error);
 
-    int AuthorizeUser(const std::string &login, const std::string &password);
+    int AuthorizeUser(const std::string &login, const std::string &password, DbErrorCodes &error);
 
-    bool DeleteUser(const std::string &login, const std::string &password);
+    bool DeleteUser(const std::string &login, const std::string &password, DbErrorCodes &error);
 };
 
 

@@ -18,8 +18,8 @@ string DatabaseManager::GetUserDir() {
 }
 
 
-bool DatabaseManager::Register(const string &login, const string &password) {
-    int userID =  _usersDatabaseManager.RegisterUser(login, password);
+bool DatabaseManager::Register(const std::string &login, const std::string &password, DbErrorCodes &error) {
+    int userID = _usersDatabaseManager.RegisterUser(login, password, error);
     if (userID == FAIL)
         return false;
     else {
@@ -32,8 +32,8 @@ bool DatabaseManager::Register(const string &login, const string &password) {
 }
 
 
-bool DatabaseManager::Authorize(const string &login, const string &password) {
-    int userID = _usersDatabaseManager.AuthorizeUser(login, password);
+bool DatabaseManager::Authorize(const std::string &login, const std::string &password, DbErrorCodes &error) {
+    int userID = _usersDatabaseManager.AuthorizeUser(login, password, error);
 
     if (userID == FAIL)
         return false;
@@ -47,30 +47,39 @@ bool DatabaseManager::Authorize(const string &login, const string &password) {
     return true;
 }
 
-bool DatabaseManager::DeleteUser(const string &login, const string &password) {
-    return _usersDatabaseManager.DeleteUser(login, password);
+bool DatabaseManager::DeleteUser(const string &login, const string &password, DbErrorCodes &error) {
+    return _usersDatabaseManager.DeleteUser(login, password, error);
 }
 
-bool DatabaseManager::Upload(const string &file_name, const string &dir_name, const string &hash_sum) {
-    return _filesDatabaseManager.UploadFile(file_name, dir_name, hash_sum);
+bool DatabaseManager::Upload(const string &file_name, const string &dir_name, const string &hash_sum, DbErrorCodes &error) {
+    return _filesDatabaseManager.UploadFile(file_name, dir_name, hash_sum, error);
 }
 
-shared_ptr<InFile> DatabaseManager::Download(const string &file_name, const string &dir_name) {
-	shared_ptr<InFile> file = _filesDatabaseManager.DownloadFile(file_name, dir_name);
+shared_ptr<InFile> DatabaseManager::Download(const string &file_name, const string &dir_name, DbErrorCodes &error) {
+	shared_ptr<InFile> file = _filesDatabaseManager.DownloadFile(file_name, dir_name, error);
 	return file;
 }
 
 
-bool DatabaseManager::DeleteFile(const string &file_name, const string &dir_name) {
-    return _filesDatabaseManager.DeleteFile(file_name, dir_name);
+bool DatabaseManager::DeleteFile(const string &file_name, const string &dir_name, DbErrorCodes &error) {
+    return _filesDatabaseManager.DeleteFile(file_name, dir_name, error);
 }
 
-map <string, string> DatabaseManager::GetFileList(string const& dir_name) {
-    return _filesDatabaseManager.GetFileList(dir_name);
+map <string, string> DatabaseManager::GetFileList(string const& dir_name, DbErrorCodes &error) {
+    return _filesDatabaseManager.GetFileList(dir_name, error);
 }
 
 unsigned long DatabaseManager::CheckAvailableSpace() {
     fs::space_info info = fs::space(_filesDatabaseManager.GetPathToUsersStorage());
     return info.available;
+}
+
+std::string DatabaseManager::GetPublicLink(const string &file_name, const string &dir_name, DbErrorCodes &error) {
+    return _filesDatabaseManager.GetPublicLink(file_name, dir_name, error);
+}
+
+std::shared_ptr<InFile> DatabaseManager::DownloadByLink(const string &link, DbErrorCodes &error) {
+    shared_ptr<InFile> file = _filesDatabaseManager.DownloadFileByLink(link, error);
+    return file;
 }
  

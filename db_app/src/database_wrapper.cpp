@@ -2,6 +2,7 @@
 // Created by ekaterina on 18.04.2020.
 //
 
+#include <cmd_codes.h>
 #include "../inc/database_wrapper.h"
 using namespace std;
 using boost::lexical_cast;
@@ -13,13 +14,14 @@ DatabaseWrapper::DatabaseWrapper() {
     GetFilesDBInfo();
 }
 
-int DatabaseWrapper::CheckUserID(string const& login, string const& password) {
+int DatabaseWrapper::CheckUserID(const std::string &login, const std::string &password, DbErrorCodes &error) {
     shared_ptr<PGconn> connection;
     try
     {
         connection = GetConnection(USERS_DB);
     }
     catch(std::exception &exc) {
+        error = DB_CONNECTION_ERROR;
         BOOST_LOG_TRIVIAL(fatal) << exc.what();
     }
 
@@ -38,19 +40,19 @@ int DatabaseWrapper::CheckUserID(string const& login, string const& password) {
     else {
         string result;
         result = PQgetvalue(query_result.get(), 0, 0);
-        cout <<  lexical_cast<int>(result) << endl;
         return lexical_cast<int>(result);
     }
 }
 
 
-bool DatabaseWrapper::CheckExistingLogin(const std::string &login) {
+bool DatabaseWrapper::CheckExistingLogin(const std::string &login, DbErrorCodes &error) {
     shared_ptr<PGconn> connection;
     try
     {
         connection = GetConnection(USERS_DB);
     }
     catch(std::exception &exc) {
+        error = DB_CONNECTION_ERROR;
         BOOST_LOG_TRIVIAL(fatal) << exc.what();
     }
 
@@ -66,7 +68,8 @@ bool DatabaseWrapper::CheckExistingLogin(const std::string &login) {
     return PQntuples(query_result.get());
 }
 
-int DatabaseWrapper::AddUserRecord(const string &login, const string &password){
+int DatabaseWrapper::AddUserRecord(const std::string &login, const std::string &password, DbErrorCodes &error) {
+    int user_ID = FAIL;
     shared_ptr<PGconn> connection;
     try
     {
@@ -74,10 +77,11 @@ int DatabaseWrapper::AddUserRecord(const string &login, const string &password){
     }
     catch(std::exception &exc)
     {
+        error = DB_CONNECTION_ERROR;
         BOOST_LOG_TRIVIAL(fatal) << exc.what();
     }
 
-    int user_ID = std::hash<std::string>{}(login);
+    user_ID = std::hash<std::string>{}(login);
     std::string hash = std::to_string(user_ID);
 
     std::string query = "INSERT INTO users_data VALUES (" + hash + ", '"+ login + "', '" + password + "')";
@@ -93,12 +97,13 @@ int DatabaseWrapper::AddUserRecord(const string &login, const string &password){
 }
 
 
-int DatabaseWrapper::CheckFileID(const string &file_name, const string &dir_name) {
+int DatabaseWrapper::CheckFileID(const std::string &file_name, const std::string &dir_name, DbErrorCodes &error) {
     shared_ptr<PGconn> connection;
     try {
         connection = GetConnection(FILES_DB);
     }
     catch(std::exception &exc) {
+        error = DB_CONNECTION_ERROR;
         BOOST_LOG_TRIVIAL(fatal) << exc.what();
     }
 
@@ -117,21 +122,23 @@ int DatabaseWrapper::CheckFileID(const string &file_name, const string &dir_name
     else {
         string result;
         result = PQgetvalue(query_result.get(), 0, 0);
-        cout << lexical_cast<int>(result) << endl;
         return lexical_cast<int>(result);
     }
 }
 
-int DatabaseWrapper::AddFileRecord(const string &file_name, const string &dir_name, const string &hash_sum) {
+int DatabaseWrapper::AddFileRecord(const std::string &file_name, const std::string &dir_name, const std::string &hash_sum,
+                               DbErrorCodes &error) {
+    int file_ID = FAIL;
     shared_ptr<PGconn> connection;
     try {
         connection = GetConnection(FILES_DB);
     }
     catch(std::exception &exc) {
+        error = DB_CONNECTION_ERROR;
         BOOST_LOG_TRIVIAL(fatal) << exc.what();
     }
 
-    int file_ID = std::hash<std::string>{}(to_string(_userID) + file_name + dir_name);
+    file_ID = std::hash<std::string>{}(to_string(_userID) + file_name + dir_name);
     std::string hash = std::to_string(file_ID);
 
     std::string query = "INSERT INTO files_data VALUES (" + std::to_string(_userID) + ", '" + dir_name + "' , '" + file_name + "', " + hash_sum + ", " + hash + ")";
@@ -146,12 +153,13 @@ int DatabaseWrapper::AddFileRecord(const string &file_name, const string &dir_na
         return lexical_cast<int>(hash);
 }
 
-map<string, string> DatabaseWrapper::GetFileList(const string &dir_name) {
+std::map<std::string, std::string> DatabaseWrapper::GetFileList(std::string const &dir_name, DbErrorCodes &error) {
     shared_ptr<PGconn> connection;
     try {
         connection = GetConnection(FILES_DB);
     }
     catch(std::exception &exc) {
+        error = DB_CONNECTION_ERROR;
         BOOST_LOG_TRIVIAL(fatal) << exc.what();
     }
 
@@ -204,7 +212,7 @@ shared_ptr<PGconn> DatabaseWrapper::GetConnection(DBType db_type) {
 
 void DatabaseWrapper::GetFilesDBInfo() {
     pt::ptree root;
-    pt::read_json("../config.json", root);
+    pt::read_json("/etc/screamer_cloud_config.json", root);
 
     string  info;
 
@@ -218,7 +226,7 @@ void DatabaseWrapper::GetFilesDBInfo() {
 
 void DatabaseWrapper::GetUsersDBInfo() {
     pt::ptree root;
-    pt::read_json("../config.json", root);
+    pt::read_json("/etc/screamer_cloud_config.json", root);
 
     string info;
 
@@ -234,12 +242,13 @@ void DatabaseWrapper::SetUserID(int userID) {
     _userID = userID;
 }
 
-void DatabaseWrapper::DeleteUserRecord(int userID){
+void DatabaseWrapper::DeleteUserRecord(int userID, DbErrorCodes &error) {
     shared_ptr<PGconn> connection;
     try {
         connection = GetConnection(USERS_DB);
     }
     catch(std::exception &exc) {
+        error = DB_CONNECTION_ERROR;
         BOOST_LOG_TRIVIAL(fatal) << exc.what();
     }
 
@@ -255,12 +264,13 @@ void DatabaseWrapper::DeleteUserRecord(int userID){
         return;
 }
 
-void DatabaseWrapper::DeleteFileRecord(int fileID) {
+void DatabaseWrapper::DeleteFileRecord(int fileID, DbErrorCodes &error) {
     shared_ptr<PGconn> connection;
     try {
         connection = GetConnection(FILES_DB);
     }
     catch(std::exception &exc) {
+        error = DB_CONNECTION_ERROR;
         BOOST_LOG_TRIVIAL(fatal) << exc.what();
     }
 
@@ -276,12 +286,13 @@ void DatabaseWrapper::DeleteFileRecord(int fileID) {
         return;
 }
 
-void DatabaseWrapper::DeleteAllFiles() {
+void DatabaseWrapper::DeleteAllFiles(DbErrorCodes &error) {
     shared_ptr<PGconn> connection;
     try {
         connection = GetConnection(FILES_DB);
     }
     catch(std::exception &exc) {
+        error = DB_CONNECTION_ERROR;
         BOOST_LOG_TRIVIAL(fatal) << exc.what();
     }
 
@@ -295,4 +306,58 @@ void DatabaseWrapper::DeleteAllFiles() {
         throw std::runtime_error(PQresultErrorMessage(query_result.get()));
     else
         return;
+}
+
+std::string DatabaseWrapper::GetPublicLink(int fileID, DbErrorCodes &error) {
+    shared_ptr<PGconn> connection;
+    try {
+        connection = GetConnection(FILES_DB);
+    }
+    catch(std::exception &exc) {
+        error = DB_CONNECTION_ERROR;
+        BOOST_LOG_TRIVIAL(fatal) << exc.what();
+    }
+
+    int link = hash<string>{}(to_string(fileID));
+    string file_link = "screamer_cloud/link/file/" + to_string(link);
+
+    std::string query = "UPDATE files_data SET public_link = " + file_link + " WHERE id_file = " + to_string(fileID);
+    BOOST_LOG_TRIVIAL(trace) << query;
+
+    auto res_deleter = [](PGresult* r) { PQclear(r);};
+    std::unique_ptr <PGresult, decltype(res_deleter)> query_result(PQexec(connection.get(), query.c_str()), res_deleter);
+
+    if (PQresultStatus(query_result.get()) != PGRES_COMMAND_OK)
+        throw std::runtime_error(PQresultErrorMessage(query_result.get()));
+    else
+        return file_link;
+}
+
+int DatabaseWrapper::CheckFileIDByLink(const std::string &link, DbErrorCodes &error) {
+    shared_ptr<PGconn> connection;
+    try {
+        connection = GetConnection(FILES_DB);
+    }
+    catch(std::exception &exc) {
+        error = DB_CONNECTION_ERROR;
+        BOOST_LOG_TRIVIAL(fatal) << exc.what();
+    }
+
+    std::string query = "SELECT ID_file FROM files_data WHERE public_link = " + link;
+    BOOST_LOG_TRIVIAL(trace) << query;
+
+    auto res_deleter = [](PGresult* r) { PQclear(r);};
+    std::unique_ptr <PGresult, decltype(res_deleter)> query_result(PQexec(connection.get(), query.c_str()), res_deleter);
+
+    if (PQresultStatus(query_result.get()) != PGRES_TUPLES_OK)
+        throw std::runtime_error(PQresultErrorMessage(query_result.get()));
+
+    //если не нашли нужной записи, возвращаем FAIL
+    if (!PQntuples(query_result.get()))
+        return FAIL;
+    else {
+        string result;
+        result = PQgetvalue(query_result.get(), 0, 0);
+        return lexical_cast<int>(result);
+    }
 }

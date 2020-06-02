@@ -31,15 +31,21 @@ public:
 
     void SetUserDirectory(const std::string userDirectory);
 
-    bool CheckExistingFile(const std::string &file_name, const std::string &dir_name);
+    bool CheckExistingFile(const std::string &file_name, const std::string &dir_name, DbErrorCodes &error);
 
-    bool UploadFile(const std::string &file_name, const std::string &dir_name, const std::string &hash_sum);
+    bool UploadFile(const std::string &file_name, const std::string &dir_name, const std::string &hash_sum,
+                    DbErrorCodes &error);
 
-	std::shared_ptr<InFile> DownloadFile(const std::string &file_name, const std::string &dir_name);
+	std::shared_ptr<InFile>
+    DownloadFile(const std::string &file_name, const std::string &dir_name, DbErrorCodes &error);
 
-    bool DeleteFile(const std::string &file_name, const std::string &dir_name);
+    bool DeleteFile(const std::string &file_name, const std::string &dir_name, DbErrorCodes &error);
 
-    std::map<std::string, std::string> GetFileList(const std::string &dir_name);
+    std::map<std::string, std::string> GetFileList(const std::string &dir_name, DbErrorCodes &error);
+
+    std::string GetPublicLink(const std::string &file_name, const std::string &dir_name, DbErrorCodes &error);
+
+    std::shared_ptr<InFile> DownloadFileByLink(const std::string &link, DbErrorCodes &error);
 };
 
 
