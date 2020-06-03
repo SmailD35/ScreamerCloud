@@ -7,6 +7,7 @@
 #include <array>
 #include <iostream>
 #include <sys/stat.h>
+#include <openssl/md5.h>
 
 const size_t chunkSize = 1024;
 
@@ -16,9 +17,7 @@ class File
 	virtual ~File() = default;
 	std::string GetHash();
 	size_t GetChunksCount();
-	void ResetChunks();
 	int GetProgress();
-	int CalculateHash();
 	virtual size_t GetSize() = 0;
 
  protected:

@@ -6,11 +6,6 @@
 
 using namespace std;
 
-string File::GetHash()
-{
-	return "";
-}
-
 void File::ResetChunks()
 {
 	_chunksCurrent = 1;
@@ -24,12 +19,30 @@ int File::GetProgress()
 
 int File::CalculateHash()
 {
+
 	return 0;
 }
 
 size_t File::GetChunksCount()
 {
 	return _chunksCount;
+}
+
+std::string File::GetHash()
+{
+	MD5_CTX ctx;
+	MD5_Init(&ctx);
+
+	ifstream ifs(_path, ios::binary);
+
+	char file_buffer[4096];
+	while (ifs.read(file_buffer, sizeof(file_buffer)) || ifs.gcount()) {
+		MD5_Update(&ctx, file_buffer, ifs.gcount());
+	}
+	unsigned char digest[MD5_DIGEST_LENGTH] = {};
+	MD5_Final(digest, &ctx);
+
+	return string(reinterpret_cast<char*>(digest));
 }
 
 OutFile::OutFile(size_t size, string fileDirectory, string fileName)

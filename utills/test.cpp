@@ -6,8 +6,9 @@
 
 int main()
 {
-	auto* outFile = new OutFile(12530671, "azaz", "video.mkv");
-	InFile inFile("/home/egor/Видео/angl-2020-04-27_23.03.52.mkv");
+	auto* outFile = new OutFile(12530671, "azaz", "photo.mkv");
+	InFile inFile("/Users/smaild/Desktop/DSC_0150.NEF");
+	inFile.GetHash();
 
 	std::array<char, chunkSize> buffer;
 	buffer.fill('\0');
@@ -18,6 +19,7 @@ int main()
 		buffer = inFile.GetNextChunk();
 		outFile->SetNextChunk(buffer);
 	}
+	outFile->GetHash();
 
 	delete outFile;
 }
