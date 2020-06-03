@@ -35,7 +35,7 @@ int RegisterUserCommand::Do()
 	map<string,string> &query = _userSession._userQuery;
 
 	DbErrorCodes dbError = DB_NOERROR;
-	!dbManager.Register(query["username"], query["password"], dbError);
+	dbManager.Register(query["username"], query["password"], dbError);
 	query["error_code"] = to_string(dbError);
 
 	int netError = network.SendMsg(make_shared<map<string, string>>(query));
@@ -94,15 +94,20 @@ int UploadFileCommand::Do()
 		return SERVER_UPLOAD_ERROR;
 	}
 
-	DbErrorCodes dbError = DB_NOERROR;
-	dbManager.Upload(query["file_name"], query["file_directory"], "1234", dbError);
-	if (dbError != DB_NOERROR)
+	if (file->GetHash() != query["hash_sum"])
+		query["error_code"] = to_string(SERVER_HASHSUM_ERROR);
+	else
 	{
-		query["error_code"] = to_string(SERVER_UPLOAD_ERROR);
-		netError = network.SendMsg(make_shared<map<string, string>>(query));
-		if (netError)
-			BOOST_LOG_TRIVIAL(error) << network.GetClientIP() << " SendMsg in UploadFileCommand failed";
-		return SERVER_UPLOAD_ERROR;
+		DbErrorCodes dbError = DB_NOERROR;
+		dbManager.Upload(query["file_name"], query["file_directory"], query["hash_sum"], dbError);
+		if (dbError != DB_NOERROR)
+		{
+			query["error_code"] = to_string(SERVER_UPLOAD_ERROR);
+			netError = network.SendMsg(make_shared<map<string, string>>(query));
+			if (netError)
+				BOOST_LOG_TRIVIAL(error) << network.GetClientIP() << " SendMsg in UploadFileCommand failed";
+			return SERVER_UPLOAD_ERROR;
+		}
 	}
 
 	netError = network.SendMsg(make_shared<map<string, string>>(query));
@@ -111,7 +116,6 @@ int UploadFileCommand::Do()
 
 
 	return SERVER_NOERROR;
-	//TODO: проверить хеш-сумму
 }
 
 int UploadFileCommand::Undo()
@@ -145,6 +149,7 @@ int DownloadFileCommand::Do()
 			BOOST_LOG_TRIVIAL(error) << network.GetClientIP() << " SendMsg in DownloadFileCommand failed";
 		return SERVER_DOWNLOAD_ERROR;
 	}
+	query["hash_sum"] = file->GetHash();
 	query["file_size"] = to_string(file->GetSize());
 
 	int netError = network.SendMsg(make_shared<map<string, string>>(query));

@@ -129,6 +129,7 @@ int ClientApp::UploadFile(const shared_ptr<map<string, string>> &request)
 	request->insert({"password", _user.password});
 	request->insert({"file_size", to_string(inFile->GetSize())});
 	request->insert({"error_code", "0"});
+	request->insert({"hash_sum", inFile->GetHash()});
 
 	shared_ptr<map<string, string>> response = Request(request);
 	if (ValidateResponse(response, UPLOAD))
@@ -171,7 +172,14 @@ int ClientApp::DownloadFile(const shared_ptr<map<string, string>> &request)
 		thread progressBar(&ClientApp::PrintProgress, this, outFile, consoleWidth);
 		_clientNetwork->RecvFile(outFile);
 		progressBar.join();
-		cout << "Download success\n";
+		string hash = outFile->GetHash();
+		if (response->at("hash_sum") == hash)
+			cout << "Download success\n";
+		else
+		{
+			cout << "Download failed\n";
+			fs::remove(path.string());
+		}
 		return 0;
 	}
 	return -1;

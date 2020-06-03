@@ -143,8 +143,8 @@ int DatabaseWrapper::AddFileRecord(const std::string &file_name, const std::stri
     file_ID = std::hash<std::string>{}(to_string(_userID) + file_name + dir_name);
     std::string hash = std::to_string(file_ID);
 
-    std::string query = "INSERT INTO files_data VALUES (" + std::to_string(_userID) + ", '" + dir_name + "' , '" + file_name + "', " + hash_sum + ", " + hash + ")";
-    BOOST_LOG_TRIVIAL(trace) << query;
+	std::string query = "INSERT INTO files_data (ID_user, user_path, file_name, hash, ID_file) VALUES (" + std::to_string(_userID) + ", '" + dir_name + "' , '" + file_name + "', '" + hash_sum + "', " + hash + ")";
+	BOOST_LOG_TRIVIAL(trace) << query;
 
     auto res_deleter = [](PGresult* r) { PQclear(r);};
     std::unique_ptr <PGresult, decltype(res_deleter)> query_result(PQexec(connection.get(), query.c_str()), res_deleter);
