@@ -6,7 +6,7 @@ set(CMAKE_CXX_FLAGS -I/usr/include/postgresql)
 
 find_package( Boost REQUIRED COMPONENTS filesystem log log_setup)
 include_directories(inc ../utills ${Boost_INCLUDE_DIRS})
-link_directories(/usr/lib/x86_64-linux-gnu/ ../utills/cmake-build-debug)
+link_directories(/usr/lib/x86_64-linux-gnu/ ../utills/cmake-build-release)
 add_definitions(-DBOOST_LOG_DYN_LINK)
 
 enable_testing()

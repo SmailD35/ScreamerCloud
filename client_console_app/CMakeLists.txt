@@ -7,7 +7,7 @@ add_subdirectory(tests)
 
 find_package( Boost REQUIRED COMPONENTS program_options filesystem )
 include_directories(inc ../network/network_client/headers ../utills ${Boost_INCLUDE_DIRS})
-link_directories(../network/cmake-build-debug ../utills/cmake-build-debug)
+link_directories(../network/cmake-build-release ../utills/cmake-build-release)
 
 add_executable(client_console_app main.cpp src/client_app.cpp inc/client_app.h)
 target_link_libraries(client_console_app network_client screamer_utills ${Boost_LIBRARIES} gmock_main)

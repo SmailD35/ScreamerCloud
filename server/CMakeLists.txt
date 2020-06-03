@@ -7,7 +7,7 @@ set(CMAKE_CXX_FLAGS -I/usr/include/postgresql)
 find_package(Boost REQUIRED COMPONENTS filesystem log log_setup)
 
 include_directories(include ../db_app/inc ../utills ../network/network_server/headers ${Boost_INCLUDE_DIRS})
-link_directories(../utills/cmake-build-debug ../network/cmake-build-debug ../db_app/cmake-build-debug)
+link_directories(../utills/cmake-build-release ../network/cmake-build-release ../db_app/cmake-build-release)
 
 add_subdirectory(tests)
 add_executable(server source/main.cpp source/commands.cpp include/commands.h source/server.cpp include/server.h include/server_logging.hpp)
