@@ -1,0 +1,22 @@
+{
+	"users_storage" : "/home/egor/screamer_cloud_storage",
+	"users_db_info" : 
+	{
+		"host" : "localhost",
+		"dbname" : "users_db",
+		"user" : "screamer_cloud", 
+		"password" : "1221"
+	},
+	"files_db_info" : 
+	{
+		"host" : "localhost",
+		"dbname" : "files_db",
+		"user" : "screamer_cloud", 
+		"password" : "1221"
+	},
+	"server" :
+	{
+		"IP" : "127.0.0.1",
+		"TCP_port" : "23545"
+	}
+}
