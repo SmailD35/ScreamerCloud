@@ -6,20 +6,20 @@
 
 int main()
 {
-	auto* outFile = new OutFile(12530671, "azaz", "photo.mkv");
-	InFile inFile("/Users/smaild/Desktop/DSC_0150.NEF");
-	inFile.GetHash();
+	InFile inFile("/home/egor/Загрузки/uml.png");
+	auto* outFile = new OutFile(inFile.GetSize(), "azaz", "photo.png");
+	std::cout << inFile.GetHash() << std::endl;
 
 	std::array<char, chunkSize> buffer;
 	buffer.fill('\0');
 	
 	size_t chunksCount = inFile.GetChunksCount();
-	for (size_t i = 0; i < chunksCount; i++)
+	for (size_t i = 0; i <= chunksCount; i++)
 	{
 		buffer = inFile.GetNextChunk();
 		outFile->SetNextChunk(buffer);
 	}
-	outFile->GetHash();
+	std::cout << outFile->GetHash();
 
 	delete outFile;
 }

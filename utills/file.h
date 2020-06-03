@@ -8,6 +8,7 @@
 #include <iostream>
 #include <sys/stat.h>
 #include <openssl/md5.h>
+#include <iomanip>
 
 const size_t chunkSize = 1024;
 
@@ -15,12 +16,15 @@ class File
 {
  public:
 	virtual ~File() = default;
-	std::string GetHash();
 	size_t GetChunksCount();
 	int GetProgress();
 	virtual size_t GetSize() = 0;
+	virtual std::string GetHash() = 0;
 
- protected:
+protected:
+	std::string GetHashInternal();
+
+protected:
 	std::string _hashSum;
 	size_t _size = 0;
 	size_t _chunksCurrent = 1;
@@ -35,6 +39,7 @@ class OutFile : public File
 	~OutFile() override;
 	void SetNextChunk(std::array<char, chunkSize> buf);
 	size_t GetSize() override;
+	std::string GetHash() override;
 
  private:
 	std::ofstream _file;
@@ -47,8 +52,9 @@ class InFile : public File
 	~InFile() override;
 	std::array<char, chunkSize> GetNextChunk();
 	size_t GetSize() override;
+	std::string GetHash() override;
 
- private:
+private:
 	std::ifstream _file;
 };
 

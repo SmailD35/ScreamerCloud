@@ -6,21 +6,10 @@
 
 using namespace std;
 
-void File::ResetChunks()
-{
-	_chunksCurrent = 1;
-}
-
 int File::GetProgress()
 {
 	if (_chunksCount == 0) return 0;
 	return int(float(_chunksCurrent) / float(_chunksCount) * 100);
-}
-
-int File::CalculateHash()
-{
-
-	return 0;
 }
 
 size_t File::GetChunksCount()
@@ -28,7 +17,7 @@ size_t File::GetChunksCount()
 	return _chunksCount;
 }
 
-std::string File::GetHash()
+std::string File::GetHashInternal()
 {
 	MD5_CTX ctx;
 	MD5_Init(&ctx);
@@ -42,7 +31,11 @@ std::string File::GetHash()
 	unsigned char digest[MD5_DIGEST_LENGTH] = {};
 	MD5_Final(digest, &ctx);
 
-	return string(reinterpret_cast<char*>(digest));
+	std::stringstream result;
+	for(unsigned char i : digest)
+		result << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(i);
+
+	return result.str();
 }
 
 OutFile::OutFile(size_t size, string fileDirectory, string fileName)
@@ -80,6 +73,15 @@ size_t OutFile::GetSize()
 	return _size;
 }
 
+std::string OutFile::GetHash()
+{
+	_file.close();
+	string result = GetHashInternal();
+	_file.open(_path,  std::ofstream::out | std::ofstream::app | std::ofstream::binary);
+
+	return result;
+}
+
 InFile::InFile(std::string filePath)
 {
 	_path = std::move(filePath);
@@ -110,3 +112,11 @@ size_t InFile::GetSize()
 	int rc = stat(_path.c_str(), &stat_buf);
 	return rc == 0 ? stat_buf.st_size : -1;
 }
+
+std::string InFile::GetHash()
+{
+	_file.close();
+	string result = GetHashInternal();
+	_file.open(_path,  std::ifstream::in | std::ifstream::binary);
+
+	return result;}
